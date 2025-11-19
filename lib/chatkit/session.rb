@@ -7,6 +7,15 @@ module ChatKit
   # Represents a ChatKit session.
   #
   # Source: https://platform.openai.com/docs/api-reference/chatkit/sessions/create
+  # Usage:
+  #  ChatKit.configure do |config|
+  #    config.client_secret = "your_client_secret"
+  #  end
+  #
+  #  ChatKit::Session.create!(
+  #    user_id: "user_12345",
+  #    workflow: { id: "wf_68eeb857eaf8819089eb55d32f39a822050622537973ef99" }
+  #  )
   class Session
     module Defaults
       ENABLED = true
@@ -86,9 +95,9 @@ module ChatKit
 
       handle_response_errors(response)
 
-      data = parse_response(response)
+      session_response = parse_response(response)
 
-      update_current_session(data)
+      update_current_session(session_response)
     end
 
   private
@@ -135,8 +144,8 @@ module ChatKit
     #
     # @param data [Hash] The session data to store.
     # @return [Response] The updated current session.
-    def update_current_session(data)
-      ChatKit.current_session.data = data
+    def update_current_session(session_response)
+      ChatKit.current_info.session = session_response
     end
 
     # @param response [Net::HTTPResponse] The HTTP response to parse.
