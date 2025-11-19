@@ -71,20 +71,22 @@ module ChatKit
             @delta = []
           end
 
-          # Create an Item from event data
-          # @param data [Hash] The item data from the event
-          # @return [Item]
-          def self.from_event(data)
-            new(
-              id: data["id"],
-              thread_id: data["thread_id"],
-              created_at: data["created_at"],
-              attachments: data["attachments"] || [],
-              inference_options: data["inference_options"] || {},
-              content: data["content"] || [],
-              quoted_text: data["quoted_text"] || "",
-              workflow: parse_workflow(data)
-            )
+          class << self
+            # Create an Item from event data
+            # @param data [Hash] The item data from the event
+            # @return [Item]
+            def from_event(data)
+              new(
+                id: data["id"],
+                thread_id: data["thread_id"],
+                created_at: data["created_at"],
+                attachments: data["attachments"] || [],
+                inference_options: data["inference_options"] || {},
+                content: data["content"] || [],
+                quoted_text: data["quoted_text"] || "",
+                workflow: parse_workflow_data(data)
+              )
+            end
           end
 
           # Update item from full event data (thread.item.done)
@@ -110,9 +112,14 @@ module ChatKit
               end
             end
 
+            # Handle workflow: update if exists, create if not
             return unless data.key?("workflow")
 
-            @workflow = parse_workflow_data(data)
+            if @workflow
+              @workflow.update!(data["workflow"])
+            else
+              @workflow = parse_workflow_data(data)
+            end
           end
 
           # Process update from thread.item.updated events
@@ -131,20 +138,7 @@ module ChatKit
             end
           end
 
-          class << self
-          private
-
-            # Parse workflow data from event
-            # @param data [Hash] The event data
-            # @return [Workflow, nil]
-            def parse_workflow(data)
-              return nil unless data["workflow"]
-
-              Workflow.from_event(data["workflow"])
-            end
-          end
-
-        private
+        protected
 
           # Parse workflow data from event
           # @param data [Hash] The event data
@@ -154,6 +148,8 @@ module ChatKit
 
             Workflow.from_event(data["workflow"])
           end
+
+        private
 
           # Parse content array into Content objects
           # @param content_data [Array] The content array

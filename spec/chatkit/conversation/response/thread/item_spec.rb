@@ -318,6 +318,40 @@ RSpec.describe ChatKit::Conversation::Response::Thread::Item do
       expect(instance.workflow.tasks).to eq([{ "id" => "task1" }])
     end
 
+    it "updates existing workflow when called multiple times" do
+      # First event: thread.item.added with initial workflow
+      instance.update_from_event!({
+        "id" => "cti_workflow_1",
+        "workflow" => {
+          "type" => "reasoning",
+          "tasks" => [],
+          "expanded" => false,
+        },
+      })
+
+      expect(instance.workflow).not_to be_nil
+      expect(instance.workflow.type).to eq("reasoning")
+      expect(instance.workflow.tasks).to eq([])
+      expect(instance.workflow.summary).to be_nil
+
+      # Second event: thread.item.done with updated workflow (includes summary)
+      instance.update_from_event!({
+        "id" => "cti_workflow_1",
+        "workflow" => {
+          "type" => "reasoning",
+          "tasks" => [],
+          "summary" => { "duration" => 8 },
+          "expanded" => false,
+        },
+      })
+
+      expect(instance.workflow).not_to be_nil
+      expect(instance.workflow.type).to eq("reasoning")
+      expect(instance.workflow.tasks).to eq([])
+      expect(instance.workflow.summary).to eq({ "duration" => 8 })
+      expect(instance.workflow.expanded).to eq(false)
+    end
+
     it "does not update workflow if not present in data" do
       original_workflow = ChatKit::Conversation::Response::Thread::Item::Workflow.new(type: "original")
       instance.workflow = original_workflow
