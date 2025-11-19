@@ -24,13 +24,13 @@ module ChatKit
     #   @return [ChatKit::Config] The configuration for the Chatkit module.
     attr_accessor :configuration
 
-    # @!attribute [rw] current_session
-    #   @return [ChatKit::CurrentSession] The current ChatKit session.
-    attr_accessor :current_session
+    # @!attribute [rw] current_info
+    #   @return [ChatKit::CurrentInfo] The current ChatKit session.
+    attr_accessor :current_info
 
     def configure
       self.configuration ||= Config.new
-      self.current_session ||= CurrentSession.new
+      self.current_info ||= CurrentInfo.new
 
       yield(configuration) if block_given?
     end
