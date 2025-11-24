@@ -1,6 +1,22 @@
 # Ruby ChatKit
 
-A Ruby client library for OpenAI's ChatKit API, providing easy-to-use interfaces for creating sessions, sending messages, and uploading files.
+A Ruby client library for [OpenAI's ChatKit API](https://platform.openai.com/docs/api-reference/chatkit), providing easy-to-use interfaces for creating sessions, sending messages, and uploading files.
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Configuration](#configuration)
+  - [Quick Start](#quick-start)
+  - [Sending Messages with File Attachments](#sending-messages-with-file-attachments)
+  - [Advanced Session Configuration](#advanced-session-configuration)
+  - [Manual Session and Conversation Management](#manual-session-and-conversation-management)
+  - [File Upload](#file-upload)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+- [Code of Conduct](#code-of-conduct)
 
 ## Features
 
@@ -119,27 +135,27 @@ client.create_session!(
 
 **Configuration Options:**
 
-- **history**: Controls conversation history retention
+- [history](https://platform.openai.com/docs/api-reference/chatkit/sessions/create#chatkit_sessions_create-chatkit_configuration-history): Controls conversation history retention
 
   - `enabled`: Whether to retain chat history (default: `true`)
   - `recent_threads`: Limit the number of recent threads kept (default: `nil` - unlimited)
 
-- **file_upload**: Controls file upload capabilities
+- [file_upload](https://platform.openai.com/docs/api-reference/chatkit/sessions/create#chatkit_sessions_create-chatkit_configuration-file_upload): Controls file upload capabilities
 
   - `enabled`: Allow file uploads in conversations (default: `false`)
   - `max_file_size`: Maximum file size in MB (default: `512`)
   - `max_files`: Maximum number of files per message (default: `10`)
 
-- **automatic_thread_titling**: Automatically generate descriptive thread titles
+- [automatic_thread_titling](https://platform.openai.com/docs/api-reference/chatkit/sessions/create#chatkit_sessions_create-chatkit_configuration-automatic_thread_titling): Automatically generate descriptive thread titles
 
   - `enabled`: Enable auto-titling (default: `true`)
 
-- **expires_after**: Session expiration settings
+- [expires_after](https://platform.openai.com/docs/api-reference/chatkit/sessions/create#chatkit_sessions_create-expires_after): Session expiration settings
 
   - `anchor`: Base timestamp - `"creation"` (session created) or `"last_activity"` (last request)
   - `seconds`: Time in seconds until session expires (default: `600` - 10 minutes)
 
-- **rate_limits**: Request rate limiting
+- [rate_limits](https://platform.openai.com/docs/api-reference/chatkit/sessions/create#chatkit_sessions_create-rate_limits): Request rate limiting
   - `max_requests_per_1_minute`: Maximum API requests per minute (default: `10`)
 
 ### Manual Session and Conversation Management
