@@ -25,6 +25,20 @@ module ChatKit
           @thread.update_item!(event)
         end
       end
+
+      # Retrieves the final answer content from the thread.
+      # @return [Content, nil] The final answer content or nil if not found.
+      def answer
+        last_item = thread&.items&.last
+
+        return unless last_item
+
+        content = last_item.content
+
+        return unless content
+
+        content.filter { |c| c.type == "output_text" }&.last
+      end
     end
   end
 end

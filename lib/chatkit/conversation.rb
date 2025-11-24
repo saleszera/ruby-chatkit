@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ChatKit
+  class ConversationError < ChatKit::Error; end
+
   # Represents a conversation with ChatKit.
   #
   # Usage:
@@ -31,13 +33,17 @@ module ChatKit
       }.freeze
     end
 
+    # @!attribute [rw] text
+    #  @return [String]
+    attr_accessor :text
+
     # @!attribute [rw] client_secret
     #  @return [String]
     attr_accessor :client_secret
 
-    # @!attribute [rw] text
-    #  @return [String]
-    attr_accessor :text
+    # @!attribute [rw] attachments
+    #  @return [Array<String>]
+    attr_accessor :attachments
 
     # @!attribute [rw] response
     #  @return [Response]
@@ -46,19 +52,22 @@ module ChatKit
     # @param client_secret [String] The client secret for authentication.
     # @param text [String] The text to send in the conversation.
     # @param thread_id [String, nil] - optional - The ID of the thread to continue.
+    # @param attachments [Array<String>] The attachments to include in the message.
     # @param client [ChatKit::Client] The ChatKit client instance.
-    def initialize(client_secret:, text:, client: Client.new)
+    def initialize(client_secret:, text:, attachments: nil, client: Client.new)
       @client = client
       @client_secret = client_secret
       @text = text
+      @attachments = attachments
       @response = Response.new
     end
 
     class << self
-      def send_message!(client_secret:, text:, client: Client.new)
+      def send_message!(client_secret:, text:, attachments: nil, client: Client.new)
         new(
           client_secret:,
           text:,
+          attachments:,
           client:
         ).perform_request!
       end
@@ -78,7 +87,9 @@ module ChatKit
         @response.parse!(chunk)
       end
 
-      @response
+      self
+    rescue StandardError => e
+      raise ConversationError, "Conversation failed: #{e.message}"
     ensure
       ChatKit.current_info.conversation = self
     end
@@ -91,6 +102,7 @@ module ChatKit
       payload = Defaults::PAYLOAD.dup
 
       payload[:params][:input][:content] << { type: "input_text", text: @text }
+      payload[:params][:input][:attachments] = @attachments if @attachments
 
       if current_thread&.id
         payload[:type] = "threads.add_user_message"
@@ -119,6 +131,8 @@ module ChatKit
     # Returns the headers for the conversation request.
     # @return [Hash] The headers hash.
     def conversation_headers
+      raise SessionError, "No active session found" unless @client_secret
+
       Request::Headers.conversation_header.merge(
         "Authorization" => "Bearer #{@client_secret}"
       )
