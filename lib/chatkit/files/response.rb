@@ -29,14 +29,14 @@ module ChatKit
       attr_accessor :upload_url
 
       # @param id [String] - The file ID.
-      # @param mime_typee [String] - The MIME type of the file.
+      # @param mime_type [String] - The MIME type of the file.
       # @param name [String] - The name of the file.
       # @param preview_url [String] - The preview URL of the file.
       # @param type [String] - The type of the file.
       # @param upload_url [String] - The upload URL of the file.
-      def initialize(id:, mime_typee:, name:, preview_url:, type:, upload_url:)
+      def initialize(id:, mime_type:, name:, preview_url:, type:, upload_url:)
         @id = id
-        @mime_type = mime_typee
+        @mime_type = mime_type
         @name = name
         @preview_url = preview_url
         @type = type
@@ -47,7 +47,7 @@ module ChatKit
         def deserialize(data)
           new(
             id: data["id"],
-            mime_typee: data["mime_type"],
+            mime_type: data["mime_type"],
             name: data["name"],
             preview_url: data["preview_url"],
             type: data["type"],

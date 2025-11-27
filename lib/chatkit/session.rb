@@ -21,6 +21,10 @@ module ChatKit
       ENABLED = true
     end
 
+    # @!attribute [r] client
+    #  @return [Ruby::ChatKit::Client] The ChatKit client instance.
+    attr_reader :client
+
     # @!attribute [rw] user_id
     #  @return [String] The ID of the user.
     attr_accessor :user_id

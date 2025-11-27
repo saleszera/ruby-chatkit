@@ -20,7 +20,7 @@ RSpec.describe ChatKit::Files::Response do
       it "initializes with all provided values" do
         response = described_class.new(
           id: "file_test123",
-          mime_typee: "application/pdf",
+          mime_type: "application/pdf",
           name: "document.pdf",
           preview_url: "https://example.com/preview/file_test123",
           type: "document",
@@ -40,7 +40,7 @@ RSpec.describe ChatKit::Files::Response do
       it "raises an ArgumentError when id is missing" do
         expect do
           described_class.new(
-            mime_typee: "application/pdf",
+            mime_type: "application/pdf",
             name: "document.pdf",
             preview_url: "https://example.com/preview",
             type: "document",
@@ -49,7 +49,7 @@ RSpec.describe ChatKit::Files::Response do
         end.to raise_error(ArgumentError, /missing keyword.*id/)
       end
 
-      it "raises an ArgumentError when mime_typee is missing" do
+      it "raises an ArgumentError when mime_type is missing" do
         expect do
           described_class.new(
             id: "file_test123",
@@ -58,14 +58,14 @@ RSpec.describe ChatKit::Files::Response do
             type: "document",
             upload_url: "https://example.com/upload"
           )
-        end.to raise_error(ArgumentError, /missing keyword.*mime_typee/)
+        end.to raise_error(ArgumentError, /missing keyword.*mime_type/)
       end
 
       it "raises an ArgumentError when name is missing" do
         expect do
           described_class.new(
             id: "file_test123",
-            mime_typee: "application/pdf",
+            mime_type: "application/pdf",
             preview_url: "https://example.com/preview",
             type: "document",
             upload_url: "https://example.com/upload"
@@ -77,7 +77,7 @@ RSpec.describe ChatKit::Files::Response do
         expect do
           described_class.new(
             id: "file_test123",
-            mime_typee: "application/pdf",
+            mime_type: "application/pdf",
             name: "document.pdf",
             type: "document",
             upload_url: "https://example.com/upload"
@@ -89,7 +89,7 @@ RSpec.describe ChatKit::Files::Response do
         expect do
           described_class.new(
             id: "file_test123",
-            mime_typee: "application/pdf",
+            mime_type: "application/pdf",
             name: "document.pdf",
             preview_url: "https://example.com/preview",
             upload_url: "https://example.com/upload"
@@ -101,7 +101,7 @@ RSpec.describe ChatKit::Files::Response do
         expect do
           described_class.new(
             id: "file_test123",
-            mime_typee: "application/pdf",
+            mime_type: "application/pdf",
             name: "document.pdf",
             preview_url: "https://example.com/preview",
             type: "document"
@@ -216,7 +216,7 @@ RSpec.describe ChatKit::Files::Response do
     let(:response) do
       described_class.new(
         id: "file_test123",
-        mime_typee: "image/jpeg",
+        mime_type: "image/jpeg",
         name: "photo.jpg",
         preview_url: "https://example.com/preview/file_test123",
         type: "image",

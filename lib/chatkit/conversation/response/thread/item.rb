@@ -6,6 +6,8 @@ module ChatKit
       class Thread
         # Represents an item in a thread.
         class Item
+          REQUIRED_ATTRIBUTES = %w[id thread_id created_at].freeze
+
           # @!attribute [rw] id
           #  @return [String]
           attr_accessor :id
@@ -76,6 +78,10 @@ module ChatKit
             # @param data [Hash] The item data from the event
             # @return [Item]
             def from_event(data)
+              missing_attrs = REQUIRED_ATTRIBUTES.reject { |attr| data.key?(attr) }
+              raise ArgumentError, "Missing required attributes: #{missing_attrs.join(', ')}" unless missing_attrs.empty?
+
+
               new(
                 id: data["id"],
                 thread_id: data["thread_id"],
@@ -118,7 +124,7 @@ module ChatKit
             if @workflow
               @workflow.update!(data["workflow"])
             else
-              @workflow = parse_workflow_data(data)
+              @workflow = self.class.parse_workflow_data(data)
             end
           end
 
@@ -143,7 +149,7 @@ module ChatKit
           # Parse workflow data from event
           # @param data [Hash] The event data
           # @return [Workflow, nil]
-          def parse_workflow_data(data)
+          def self.parse_workflow_data(data)
             return nil unless data["workflow"]
 
             Workflow.from_event(data["workflow"])
