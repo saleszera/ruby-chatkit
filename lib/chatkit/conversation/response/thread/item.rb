@@ -84,7 +84,7 @@ module ChatKit
                 inference_options: data["inference_options"] || {},
                 content: data["content"] || [],
                 quoted_text: data["quoted_text"] || "",
-                workflow: parse_workflow_data(data)
+                workflow: Workflow.from_event(data["workflow"])
               )
             end
           end
@@ -118,7 +118,7 @@ module ChatKit
             if @workflow
               @workflow.update!(data["workflow"])
             else
-              @workflow = parse_workflow_data(data)
+              @workflow = Workflow.from_event(data["workflow"])
             end
           end
 
@@ -136,17 +136,6 @@ module ChatKit
             when /^workflow\./
               handle_workflow_update!(update_data)
             end
-          end
-
-        protected
-
-          # Parse workflow data from event
-          # @param data [Hash] The event data
-          # @return [Workflow, nil]
-          def parse_workflow_data(data)
-            return nil unless data["workflow"]
-
-            Workflow.from_event(data["workflow"])
           end
 
         private
@@ -190,6 +179,7 @@ module ChatKit
           # @return [void]
           def handle_text_delta!(update_data)
             delta_text = update_data["delta"]
+
             return unless delta_text
 
             @delta << delta_text

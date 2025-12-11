@@ -43,6 +43,8 @@ module ChatKit
             # @param data [Hash] The workflow data from the event
             # @return [Workflow]
             def self.from_event(data)
+              return nil if data.nil?
+
               new(
                 type: data["type"],
                 tasks: data["tasks"],
