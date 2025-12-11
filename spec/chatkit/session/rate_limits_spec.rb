@@ -10,14 +10,19 @@ RSpec.describe ChatKit::Session::RateLimits do
     end
 
     context "when max_requests_per_1_minute is provided" do
-      it "initializes with the provided value" do
-        instance = described_class.new(max_requests_per_1_minute: 25)
-        expect(instance.max_requests_per_1_minute).to eq(25)
+      it "initializes with custom integer value" do
+        instance = described_class.new(max_requests_per_1_minute: 20)
+        expect(instance.max_requests_per_1_minute).to eq(20)
       end
 
       it "accepts zero value" do
         instance = described_class.new(max_requests_per_1_minute: 0)
         expect(instance.max_requests_per_1_minute).to eq(0)
+      end
+
+      it "accepts nil value" do
+        instance = described_class.new(max_requests_per_1_minute: nil)
+        expect(instance.max_requests_per_1_minute).to be_nil
       end
 
       it "accepts large values" do
@@ -25,202 +30,405 @@ RSpec.describe ChatKit::Session::RateLimits do
         expect(instance.max_requests_per_1_minute).to eq(1000)
       end
 
-      it "accepts nil value" do
-        instance = described_class.new(max_requests_per_1_minute: nil)
-        expect(instance.max_requests_per_1_minute).to be_nil
+      it "accepts small values" do
+        instance = described_class.new(max_requests_per_1_minute: 1)
+        expect(instance.max_requests_per_1_minute).to eq(1)
       end
     end
   end
 
   describe ".build" do
     context "when no arguments are provided" do
-      it "creates an instance with nil max_requests_per_1_minute value" do
+      it "creates instance with nil max_requests_per_1_minute value" do
         instance = described_class.build
         expect(instance.max_requests_per_1_minute).to be_nil
       end
     end
 
     context "when max_requests_per_1_minute is provided" do
-      it "creates an instance with the provided value" do
+      it "creates instance with custom value" do
         instance = described_class.build(max_requests_per_1_minute: 50)
         expect(instance.max_requests_per_1_minute).to eq(50)
       end
 
-      it "accepts zero value" do
+      it "creates instance with nil value" do
+        instance = described_class.build(max_requests_per_1_minute: nil)
+        expect(instance.max_requests_per_1_minute).to be_nil
+      end
+
+      it "creates instance with zero value" do
         instance = described_class.build(max_requests_per_1_minute: 0)
         expect(instance.max_requests_per_1_minute).to eq(0)
       end
 
-      it "accepts nil value explicitly" do
-        instance = described_class.build(max_requests_per_1_minute: nil)
-        expect(instance.max_requests_per_1_minute).to be_nil
+      it "creates instance with large value" do
+        instance = described_class.build(max_requests_per_1_minute: 500)
+        expect(instance.max_requests_per_1_minute).to eq(500)
       end
+    end
+
+    it "returns an instance of RateLimits" do
+      instance = described_class.build
+      expect(instance).to be_a(described_class)
     end
   end
 
-  describe "#max_requests_per_1_minute" do
-    it "is readable" do
-      instance = described_class.new(max_requests_per_1_minute: 15)
-      expect(instance.max_requests_per_1_minute).to eq(15)
+  describe ".deserialize" do
+    context "when data is nil" do
+      it "initializes with nil max_requests_per_1_minute value" do
+        instance = described_class.deserialize(nil)
+        expect(instance.max_requests_per_1_minute).to be_nil
+      end
+
+      it "returns an instance of RateLimits" do
+        instance = described_class.deserialize(nil)
+        expect(instance).to be_a(described_class)
+      end
     end
 
-    it "is writable" do
-      instance = described_class.new(max_requests_per_1_minute: 10)
-      instance.max_requests_per_1_minute = 20
-      expect(instance.max_requests_per_1_minute).to eq(20)
+    context "when data is an empty hash" do
+      it "initializes with nil max_requests_per_1_minute value" do
+        instance = described_class.deserialize({})
+        expect(instance.max_requests_per_1_minute).to be_nil
+      end
     end
 
-    it "accepts integer values" do
-      instance = described_class.new
+    context "when data contains max_requests_per_1_minute key" do
+      it "deserializes with integer value" do
+        data = { "max_requests_per_1_minute" => 30 }
+        instance = described_class.deserialize(data)
+        expect(instance.max_requests_per_1_minute).to eq(30)
+      end
 
-      instance.max_requests_per_1_minute = 5
-      expect(instance.max_requests_per_1_minute).to eq(5)
+      it "deserializes with nil value" do
+        data = { "max_requests_per_1_minute" => nil }
+        instance = described_class.deserialize(data)
+        expect(instance.max_requests_per_1_minute).to be_nil
+      end
 
-      instance.max_requests_per_1_minute = 100
-      expect(instance.max_requests_per_1_minute).to eq(100)
+      it "deserializes with zero value" do
+        data = { "max_requests_per_1_minute" => 0 }
+        instance = described_class.deserialize(data)
+        expect(instance.max_requests_per_1_minute).to eq(0)
+      end
+
+      it "deserializes with large value" do
+        data = { "max_requests_per_1_minute" => 999 }
+        instance = described_class.deserialize(data)
+        expect(instance.max_requests_per_1_minute).to eq(999)
+      end
     end
 
-    it "accepts nil value" do
-      instance = described_class.new(max_requests_per_1_minute: 10)
-      instance.max_requests_per_1_minute = nil
-      expect(instance.max_requests_per_1_minute).to be_nil
+    context "when data contains extra keys" do
+      it "extracts only max_requests_per_1_minute using dig" do
+        data = {
+          "max_requests_per_1_minute" => 25,
+          "extra_key" => "ignored",
+        }
+        instance = described_class.deserialize(data)
+        expect(instance.max_requests_per_1_minute).to eq(25)
+      end
     end
 
-    it "accepts zero value" do
-      instance = described_class.new
-      instance.max_requests_per_1_minute = 0
-      expect(instance.max_requests_per_1_minute).to eq(0)
+    it "returns an instance of RateLimits" do
+      instance = described_class.deserialize({ "max_requests_per_1_minute" => 15 })
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe "#serialize" do
     context "when max_requests_per_1_minute has a value" do
-      it "returns a hash with max_requests_per_1_minute key" do
-        instance = described_class.new(max_requests_per_1_minute: 30)
+      it "serializes to hash with max_requests_per_1_minute key" do
+        instance = described_class.new(max_requests_per_1_minute: 20)
         result = instance.serialize
-
-        expect(result).to eq({ max_requests_per_1_minute: 30 })
+        expect(result).to eq({ max_requests_per_1_minute: 20 })
       end
 
-      it "includes zero values" do
+      it "serializes with zero value" do
         instance = described_class.new(max_requests_per_1_minute: 0)
         result = instance.serialize
+        expect(result[:max_requests_per_1_minute]).to eq(0)
+      end
 
-        expect(result).to eq({ max_requests_per_1_minute: 0 })
+      it "serializes with large value" do
+        instance = described_class.new(max_requests_per_1_minute: 1000)
+        result = instance.serialize
+        expect(result[:max_requests_per_1_minute]).to eq(1000)
       end
     end
 
     context "when max_requests_per_1_minute is nil" do
-      it "returns an empty hash due to compact" do
+      it "serializes to empty hash (compacts nil values)" do
         instance = described_class.new(max_requests_per_1_minute: nil)
         result = instance.serialize
-
         expect(result).to eq({})
       end
     end
 
     context "when using default value" do
-      it "returns a hash with the default max_requests_per_1_minute value" do
+      it "serializes with default max_requests_per_1_minute value" do
         instance = described_class.new
         result = instance.serialize
-
         expect(result).to eq({ max_requests_per_1_minute: described_class::Defaults::MAX_REQUESTS_PER_1_MINUTE })
       end
     end
 
-    context "when value is changed after initialization" do
-      it "returns the updated value" do
-        instance = described_class.new(max_requests_per_1_minute: 10)
-        instance.max_requests_per_1_minute = 25
-        result = instance.serialize
+    it "returns a hash" do
+      instance = described_class.new(max_requests_per_1_minute: 15)
+      result = instance.serialize
+      expect(result).to be_a(Hash)
+    end
+  end
 
-        expect(result).to eq({ max_requests_per_1_minute: 25 })
+  describe "attribute accessors" do
+    let(:instance) { described_class.new }
+
+    describe "#max_requests_per_1_minute" do
+      it "allows reading the max_requests_per_1_minute value" do
+        expect(instance.max_requests_per_1_minute).to eq(described_class::Defaults::MAX_REQUESTS_PER_1_MINUTE)
       end
 
-      it "returns empty hash when changed to nil" do
-        instance = described_class.new(max_requests_per_1_minute: 10)
+      it "allows writing integer value" do
+        instance.max_requests_per_1_minute = 50
+        expect(instance.max_requests_per_1_minute).to eq(50)
+      end
+
+      it "allows writing nil value" do
         instance.max_requests_per_1_minute = nil
-        result = instance.serialize
-
-        expect(result).to eq({})
-      end
-    end
-
-    context "when built with build method" do
-      it "returns empty hash for default build" do
-        instance = described_class.build
-        result = instance.serialize
-
-        expect(result).to eq({})
+        expect(instance.max_requests_per_1_minute).to be_nil
       end
 
-      it "returns hash with value when provided to build" do
-        instance = described_class.build(max_requests_per_1_minute: 15)
-        result = instance.serialize
+      it "allows writing zero value" do
+        instance.max_requests_per_1_minute = 0
+        expect(instance.max_requests_per_1_minute).to eq(0)
+      end
 
-        expect(result).to eq({ max_requests_per_1_minute: 15 })
+      it "allows writing large value" do
+        instance.max_requests_per_1_minute = 999
+        expect(instance.max_requests_per_1_minute).to eq(999)
       end
     end
   end
 
-  describe "::Defaults" do
-    it "defines MAX_REQUESTS_PER_1_MINUTE constant" do
-      expect(described_class::Defaults::MAX_REQUESTS_PER_1_MINUTE).to eq(10)
+  describe "integration with FactoryBot" do
+    context "using default factory" do
+      it "creates valid instance" do
+        instance = build(:rate_limits)
+        expect(instance).to be_a(described_class)
+        expect(instance.max_requests_per_1_minute).to eq(20)
+      end
+    end
+
+    context "using :default_limit trait" do
+      it "creates instance with default limit value" do
+        instance = build(:rate_limits, :default_limit)
+        expect(instance.max_requests_per_1_minute).to eq(described_class::Defaults::MAX_REQUESTS_PER_1_MINUTE)
+      end
+    end
+
+    context "using :no_limit trait" do
+      it "creates instance with nil max_requests_per_1_minute" do
+        instance = build(:rate_limits, :no_limit)
+        expect(instance.max_requests_per_1_minute).to be_nil
+      end
+    end
+
+    context "using :low_limit trait" do
+      it "creates instance with low limit" do
+        instance = build(:rate_limits, :low_limit)
+        expect(instance.max_requests_per_1_minute).to eq(5)
+      end
+    end
+
+    context "using :high_limit trait" do
+      it "creates instance with high limit" do
+        instance = build(:rate_limits, :high_limit)
+        expect(instance.max_requests_per_1_minute).to eq(100)
+      end
+    end
+
+    context "using :zero_limit trait" do
+      it "creates instance with zero limit" do
+        instance = build(:rate_limits, :zero_limit)
+        expect(instance.max_requests_per_1_minute).to eq(0)
+      end
+    end
+
+    context "overriding max_requests_per_1_minute value" do
+      it "allows custom value" do
+        instance = build(:rate_limits, max_requests_per_1_minute: 75)
+        expect(instance.max_requests_per_1_minute).to eq(75)
+      end
     end
   end
 
-  describe "edge cases and validation" do
-    context "with boundary values" do
-      it "handles minimum positive value" do
+  describe "round-trip serialization" do
+    it "maintains data integrity when serializing and deserializing" do
+      original = described_class.new(max_requests_per_1_minute: 30)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.max_requests_per_1_minute).to eq(original.max_requests_per_1_minute)
+    end
+
+    it "handles nil values in round-trip" do
+      original = described_class.new(max_requests_per_1_minute: nil)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.max_requests_per_1_minute).to eq(original.max_requests_per_1_minute)
+    end
+
+    it "handles zero values in round-trip" do
+      original = described_class.new(max_requests_per_1_minute: 0)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.max_requests_per_1_minute).to eq(original.max_requests_per_1_minute)
+    end
+  end
+
+  describe "edge cases" do
+    context "when modifying max_requests_per_1_minute after initialization" do
+      it "allows changing the value" do
+        instance = described_class.new(max_requests_per_1_minute: 10)
+        expect(instance.max_requests_per_1_minute).to eq(10)
+
+        instance.max_requests_per_1_minute = 50
+        expect(instance.max_requests_per_1_minute).to eq(50)
+
+        instance.max_requests_per_1_minute = 100
+        expect(instance.max_requests_per_1_minute).to eq(100)
+      end
+
+      it "allows setting to nil" do
+        instance = described_class.new(max_requests_per_1_minute: 20)
+        instance.max_requests_per_1_minute = nil
+        expect(instance.max_requests_per_1_minute).to be_nil
+      end
+    end
+
+    context "when serializing multiple times" do
+      it "produces consistent results" do
+        instance = described_class.new(max_requests_per_1_minute: 25)
+        first_serialization = instance.serialize
+        second_serialization = instance.serialize
+        expect(first_serialization).to eq(second_serialization)
+      end
+    end
+
+    context "when deserializing with unexpected data types" do
+      it "handles string values" do
+        data = { "max_requests_per_1_minute" => "20" }
+        instance = described_class.deserialize(data)
+        expect(instance.max_requests_per_1_minute).to eq("20")
+      end
+
+      it "handles float values" do
+        data = { "max_requests_per_1_minute" => 20.5 }
+        instance = described_class.deserialize(data)
+        expect(instance.max_requests_per_1_minute).to eq(20.5)
+      end
+    end
+
+    context "when working with boundary values" do
+      it "handles very large values" do
+        instance = described_class.new(max_requests_per_1_minute: 999_999)
+        expect(instance.max_requests_per_1_minute).to eq(999_999)
+        serialized = instance.serialize
+        expect(serialized[:max_requests_per_1_minute]).to eq(999_999)
+      end
+
+      it "handles negative values" do
+        instance = described_class.new(max_requests_per_1_minute: -1)
+        expect(instance.max_requests_per_1_minute).to eq(-1)
+        serialized = instance.serialize
+        expect(serialized[:max_requests_per_1_minute]).to eq(-1)
+      end
+
+      it "handles single request limit" do
         instance = described_class.new(max_requests_per_1_minute: 1)
         expect(instance.max_requests_per_1_minute).to eq(1)
-        expect(instance.serialize).to eq({ max_requests_per_1_minute: 1 })
-      end
-
-      it "handles large values" do
-        instance = described_class.new(max_requests_per_1_minute: 9999)
-        expect(instance.max_requests_per_1_minute).to eq(9999)
-        expect(instance.serialize).to eq({ max_requests_per_1_minute: 9999 })
+        serialized = instance.serialize
+        expect(serialized[:max_requests_per_1_minute]).to eq(1)
       end
     end
 
-    context "when comparing new vs build methods" do
-      it "shows different default behaviors" do
-        new_instance = described_class.new
-        build_instance = described_class.build
+    context "when modifying after serialization" do
+      it "subsequent serializations reflect modifications" do
+        instance = described_class.new(max_requests_per_1_minute: 15)
+        first_result = instance.serialize
+        expect(first_result[:max_requests_per_1_minute]).to eq(15)
 
-        expect(new_instance.max_requests_per_1_minute).to eq(10) # default
-        expect(build_instance.max_requests_per_1_minute).to be_nil # nil
+        instance.max_requests_per_1_minute = 30
+        second_result = instance.serialize
+        expect(second_result[:max_requests_per_1_minute]).to eq(30)
       end
 
-      it "produces same result when same value is provided" do
-        new_instance = described_class.new(max_requests_per_1_minute: 20)
-        build_instance = described_class.build(max_requests_per_1_minute: 20)
+      it "handles transition to nil" do
+        instance = described_class.new(max_requests_per_1_minute: 20)
+        first_result = instance.serialize
+        expect(first_result).to have_key(:max_requests_per_1_minute)
 
-        expect(new_instance.max_requests_per_1_minute).to eq(build_instance.max_requests_per_1_minute)
-        expect(new_instance.serialize).to eq(build_instance.serialize)
+        instance.max_requests_per_1_minute = nil
+        second_result = instance.serialize
+        expect(second_result).not_to have_key(:max_requests_per_1_minute)
       end
     end
+  end
 
-    context "when checking serialization consistency" do
-      it "maintains consistency across multiple serialize calls" do
-        instance = described_class.new(max_requests_per_1_minute: 42)
+  describe "constants and defaults" do
+    it "has correct MAX_REQUESTS_PER_1_MINUTE default" do
+      expect(described_class::Defaults::MAX_REQUESTS_PER_1_MINUTE).to eq(10)
+    end
 
-        first_serialize = instance.serialize
-        second_serialize = instance.serialize
+    it "uses Defaults::MAX_REQUESTS_PER_1_MINUTE as default value" do
+      instance = described_class.new
+      expect(instance.max_requests_per_1_minute).to eq(described_class::Defaults::MAX_REQUESTS_PER_1_MINUTE)
+    end
+  end
 
-        expect(first_serialize).to eq(second_serialize)
+  describe "documentation compliance" do
+    context "according to the class documentation" do
+      it "defaults to 10 requests per minute when omitted" do
+        instance = described_class.new
+        expect(instance.max_requests_per_1_minute).to eq(10)
+      end
+    end
+  end
+
+  describe "common use cases" do
+    context "rate limiting scenarios" do
+      it "represents no rate limiting (nil)" do
+        instance = described_class.new(max_requests_per_1_minute: nil)
+        expect(instance.max_requests_per_1_minute).to be_nil
       end
 
-      it "reflects changes in subsequent serializations" do
+      it "represents very restrictive rate limiting" do
+        instance = described_class.new(max_requests_per_1_minute: 1)
+        expect(instance.max_requests_per_1_minute).to eq(1)
+      end
+
+      it "represents conservative rate limiting" do
         instance = described_class.new(max_requests_per_1_minute: 5)
+        expect(instance.max_requests_per_1_minute).to eq(5)
+      end
 
-        original_serialize = instance.serialize
-        instance.max_requests_per_1_minute = 10
-        updated_serialize = instance.serialize
+      it "represents default rate limiting" do
+        instance = described_class.new(max_requests_per_1_minute: 10)
+        expect(instance.max_requests_per_1_minute).to eq(10)
+      end
 
-        expect(original_serialize).to eq({ max_requests_per_1_minute: 5 })
-        expect(updated_serialize).to eq({ max_requests_per_1_minute: 10 })
+      it "represents moderate rate limiting" do
+        instance = described_class.new(max_requests_per_1_minute: 20)
+        expect(instance.max_requests_per_1_minute).to eq(20)
+      end
+
+      it "represents generous rate limiting" do
+        instance = described_class.new(max_requests_per_1_minute: 100)
+        expect(instance.max_requests_per_1_minute).to eq(100)
+      end
+
+      it "represents high throughput rate limiting" do
+        instance = described_class.new(max_requests_per_1_minute: 1000)
+        expect(instance.max_requests_per_1_minute).to eq(1000)
       end
     end
   end

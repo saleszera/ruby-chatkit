@@ -11,412 +11,305 @@ RSpec.describe ChatKit::Session::ChatKitConfiguration::FileUpload do
       end
     end
 
-    context "when all arguments are provided" do
-      it "initializes with the provided values" do
-        instance = described_class.new(
-          enabled: false,
-          max_file_size: 256,
-          max_files: 5
-        )
-
-        expect(instance.enabled).to be(false)
-        expect(instance.max_file_size).to eq(256)
-        expect(instance.max_files).to eq(5)
+    context "when enabled is provided" do
+      it "initializes with true value" do
+        instance = described_class.new(enabled: true)
+        expect(instance.enabled).to be(true)
       end
-    end
 
-    context "when partial arguments are provided" do
-      it "uses defaults for missing arguments" do
+      it "initializes with false value" do
         instance = described_class.new(enabled: false)
         expect(instance.enabled).to be(false)
-        expect(instance.max_file_size).to eq(described_class::Defaults::MAX_FILE_SIZE)
-        expect(instance.max_files).to eq(described_class::Defaults::MAX_FILES)
+      end
+
+      it "accepts nil value" do
+        instance = described_class.new(enabled: nil)
+        expect(instance.enabled).to be_nil
       end
     end
 
-    context "when nil values are provided" do
-      it "accepts nil values" do
-        instance = described_class.new(
-          enabled: nil,
-          max_file_size: nil,
-          max_files: nil
-        )
+    context "when max_file_size is provided" do
+      it "initializes with custom value" do
+        instance = described_class.new(max_file_size: 1024)
+        expect(instance.max_file_size).to eq(1024)
+      end
 
-        expect(instance.enabled).to be_nil
+      it "accepts zero value" do
+        instance = described_class.new(max_file_size: 0)
+        expect(instance.max_file_size).to eq(0)
+      end
+
+      it "accepts nil value" do
+        instance = described_class.new(max_file_size: nil)
         expect(instance.max_file_size).to be_nil
+      end
+    end
+
+    context "when max_files is provided" do
+      it "initializes with custom value" do
+        instance = described_class.new(max_files: 20)
+        expect(instance.max_files).to eq(20)
+      end
+
+      it "accepts zero value" do
+        instance = described_class.new(max_files: 0)
+        expect(instance.max_files).to eq(0)
+      end
+
+      it "accepts nil value" do
+        instance = described_class.new(max_files: nil)
         expect(instance.max_files).to be_nil
+      end
+    end
+
+    context "when all parameters are provided" do
+      it "initializes with all custom values" do
+        instance = described_class.new(enabled: false, max_file_size: 256, max_files: 15)
+        expect(instance.enabled).to be(false)
+        expect(instance.max_file_size).to eq(256)
+        expect(instance.max_files).to eq(15)
       end
     end
   end
 
   describe ".build" do
-    it "creates an instance with provided values" do
-      instance = described_class.build(
-        enabled: false,
-        max_file_size: 128,
-        max_files: 3
-      )
-
-      expect(instance.enabled).to be(false)
-      expect(instance.max_file_size).to eq(128)
-      expect(instance.max_files).to eq(3)
+    context "when no arguments are provided" do
+      it "creates instance with nil values" do
+        instance = described_class.build
+        expect(instance.enabled).to be_nil
+        expect(instance.max_file_size).to be_nil
+        expect(instance.max_files).to be_nil
+      end
     end
 
-    it "uses nil for missing parameters" do
-      instance = described_class.build(
-        max_file_size: 128,
-        max_files: 3
-      )
+    context "when enabled is provided" do
+      it "creates instance with true value" do
+        instance = described_class.build(enabled: true)
+        expect(instance.enabled).to be(true)
+      end
 
-      expect(instance.enabled).to be_nil
-      expect(instance.max_file_size).to eq(128)
-      expect(instance.max_files).to eq(3)
+      it "creates instance with false value" do
+        instance = described_class.build(enabled: false)
+        expect(instance.enabled).to be(false)
+      end
+
+      it "creates instance with nil value" do
+        instance = described_class.build(enabled: nil)
+        expect(instance.enabled).to be_nil
+      end
     end
 
-    it "creates instance with all nil values when no arguments provided" do
+    context "when max_file_size is provided" do
+      it "creates instance with custom value" do
+        instance = described_class.build(max_file_size: 1024)
+        expect(instance.max_file_size).to eq(1024)
+      end
+
+      it "creates instance with nil value" do
+        instance = described_class.build(max_file_size: nil)
+        expect(instance.max_file_size).to be_nil
+      end
+    end
+
+    context "when max_files is provided" do
+      it "creates instance with custom value" do
+        instance = described_class.build(max_files: 25)
+        expect(instance.max_files).to eq(25)
+      end
+
+      it "creates instance with nil value" do
+        instance = described_class.build(max_files: nil)
+        expect(instance.max_files).to be_nil
+      end
+    end
+
+    context "when all parameters are provided" do
+      it "creates instance with all custom values" do
+        instance = described_class.build(enabled: true, max_file_size: 2048, max_files: 50)
+        expect(instance.enabled).to be(true)
+        expect(instance.max_file_size).to eq(2048)
+        expect(instance.max_files).to eq(50)
+      end
+    end
+
+    it "returns an instance of FileUpload" do
       instance = described_class.build
-
-      expect(instance.enabled).to be_nil
-      expect(instance.max_file_size).to be_nil
-      expect(instance.max_files).to be_nil
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe ".deserialize" do
-    context "when data contains all keys" do
-      it "creates an instance with all provided values" do
-        data = {
-          "enabled" => true,
-          "max_file_size" => 256,
-          "max_files" => 15,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(true)
-        expect(instance.max_file_size).to eq(256)
-        expect(instance.max_files).to eq(15)
+    context "when data is nil" do
+      it "initializes with nil values for all attributes" do
+        instance = described_class.deserialize(nil)
+        expect(instance.enabled).to be_nil
+        expect(instance.max_file_size).to be_nil
+        expect(instance.max_files).to be_nil
       end
 
-      it "handles false and zero values correctly" do
-        data = {
-          "enabled" => false,
-          "max_file_size" => 0,
-          "max_files" => 0,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(false)
-        expect(instance.max_file_size).to eq(0)
-        expect(instance.max_files).to eq(0)
+      it "returns an instance of FileUpload" do
+        instance = described_class.deserialize(nil)
+        expect(instance).to be_a(described_class)
       end
+    end
 
-      it "handles nil values in data" do
-        data = {
-          "enabled" => nil,
-          "max_file_size" => nil,
-          "max_files" => nil,
-        }
-        instance = described_class.deserialize(data)
-
+    context "when data is an empty hash" do
+      it "initializes with nil values for all attributes" do
+        instance = described_class.deserialize({})
         expect(instance.enabled).to be_nil
         expect(instance.max_file_size).to be_nil
         expect(instance.max_files).to be_nil
       end
     end
 
-    context "when data contains partial keys" do
-      it "handles missing enabled key" do
-        data = {
-          "max_file_size" => 128,
-          "max_files" => 5,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.max_file_size).to eq(128)
-        expect(instance.max_files).to eq(5)
-      end
-
-      it "handles missing max_file_size key" do
-        data = {
-          "enabled" => true,
-          "max_files" => 20,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(true)
-        expect(instance.max_file_size).to be_nil
-        expect(instance.max_files).to eq(20)
-      end
-
-      it "handles missing max_files key" do
-        data = {
-          "enabled" => false,
-          "max_file_size" => 1024,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(false)
-        expect(instance.max_file_size).to eq(1024)
-        expect(instance.max_files).to be_nil
-      end
-
-      it "handles only one key present" do
+    context "when data contains enabled key" do
+      it "deserializes with true value" do
         data = { "enabled" => true }
         instance = described_class.deserialize(data)
-
         expect(instance.enabled).to be(true)
-        expect(instance.max_file_size).to be_nil
-        expect(instance.max_files).to be_nil
       end
-    end
 
-    context "when data does not contain relevant keys" do
-      it "creates an instance with all nil values for empty data" do
-        data = {}
+      it "deserializes with false value" do
+        data = { "enabled" => false }
         instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.max_file_size).to be_nil
-        expect(instance.max_files).to be_nil
-      end
-
-      it "ignores unknown keys in data" do
-        data = {
-          "unknown_key" => "value",
-          "another_key" => 123,
-          "random_field" => true,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.max_file_size).to be_nil
-        expect(instance.max_files).to be_nil
-      end
-
-      it "uses relevant keys and ignores unknown ones" do
-        data = {
-          "enabled" => true,
-          "max_file_size" => 512,
-          "unknown_field" => "ignored",
-          "max_files" => 8,
-          "extra_data" => { "nested" => "value" },
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(true)
-        expect(instance.max_file_size).to eq(512)
-        expect(instance.max_files).to eq(8)
-      end
-    end
-
-    context "with edge cases" do
-      it "handles nil data" do
-        instance = described_class.deserialize(nil)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.max_file_size).to be_nil
-        expect(instance.max_files).to be_nil
-      end
-
-      it "handles data with string keys" do
-        data = {
-          "enabled" => false,
-          "max_file_size" => 256,
-          "max_files" => 12,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(false)
-        expect(instance.max_file_size).to eq(256)
-        expect(instance.max_files).to eq(12)
-      end
-
-      it "returns a new instance each time" do
-        data = {
-          "enabled" => true,
-          "max_file_size" => 128,
-          "max_files" => 5,
-        }
-        instance1 = described_class.deserialize(data)
-        instance2 = described_class.deserialize(data)
-
-        expect(instance1).not_to be(instance2)
-        expect(instance1.enabled).to eq(instance2.enabled)
-        expect(instance1.max_file_size).to eq(instance2.max_file_size)
-        expect(instance1.max_files).to eq(instance2.max_files)
-      end
-
-      it "handles large numeric values" do
-        data = {
-          "enabled" => true,
-          "max_file_size" => 99_999,
-          "max_files" => 1_000_000,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(true)
-        expect(instance.max_file_size).to eq(99_999)
-        expect(instance.max_files).to eq(1_000_000)
-      end
-    end
-
-    context "round-trip serialization" do
-      it "can deserialize what was serialized" do
-        original = described_class.new(
-          enabled: true,
-          max_file_size: 256,
-          max_files: 7
-        )
-        serialized = original.serialize
-        # Convert keys to strings to simulate JSON parsing
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(original.enabled)
-        expect(deserialized.max_file_size).to eq(original.max_file_size)
-        expect(deserialized.max_files).to eq(original.max_files)
-      end
-
-      it "handles nil values in round-trip" do
-        original = described_class.new(
-          enabled: nil,
-          max_file_size: nil,
-          max_files: nil
-        )
-        serialized = original.serialize
-        # Since serialize uses compact, nil values are removed
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to be_nil
-        expect(deserialized.max_file_size).to be_nil
-        expect(deserialized.max_files).to be_nil
-      end
-
-      it "handles partial nil values in round-trip" do
-        original = described_class.new(
-          enabled: false,
-          max_file_size: nil,
-          max_files: 15
-        )
-        serialized = original.serialize
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(original.enabled)
-        expect(deserialized.max_file_size).to be_nil # Was nil, remains nil
-        expect(deserialized.max_files).to eq(original.max_files)
-      end
-
-      it "handles default values in round-trip" do
-        original = described_class.new # Uses default values
-        serialized = original.serialize
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
-        expect(deserialized.max_file_size).to eq(described_class::Defaults::MAX_FILE_SIZE)
-        expect(deserialized.max_files).to eq(described_class::Defaults::MAX_FILES)
-      end
-
-      it "maintains data integrity through multiple round-trips" do
-        original_data = {
-          "enabled" => false,
-          "max_file_size" => 1024,
-          "max_files" => 25,
-        }
-
-        # First round-trip
-        instance1 = described_class.deserialize(original_data)
-        serialized1 = instance1.serialize.transform_keys(&:to_s)
-
-        # Second round-trip
-        instance2 = described_class.deserialize(serialized1)
-        serialized2 = instance2.serialize.transform_keys(&:to_s)
-
-        expect(serialized1).to eq(serialized2)
-        expect(instance2.enabled).to eq(original_data["enabled"])
-        expect(instance2.max_file_size).to eq(original_data["max_file_size"])
-        expect(instance2.max_files).to eq(original_data["max_files"])
-      end
-    end
-  end
-
-  describe "attribute accessors" do
-    let(:instance) { described_class.new }
-
-    describe "#enabled" do
-      it "is readable and writable" do
-        instance.enabled = false
         expect(instance.enabled).to be(false)
       end
+
+      it "deserializes with nil value" do
+        data = { "enabled" => nil }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to be_nil
+      end
     end
 
-    describe "#max_file_size" do
-      it "is readable and writable" do
-        instance.max_file_size = 1024
+    context "when data contains max_file_size key" do
+      it "deserializes with integer value" do
+        data = { "max_file_size" => 1024 }
+        instance = described_class.deserialize(data)
         expect(instance.max_file_size).to eq(1024)
       end
+
+      it "deserializes with nil value" do
+        data = { "max_file_size" => nil }
+        instance = described_class.deserialize(data)
+        expect(instance.max_file_size).to be_nil
+      end
     end
 
-    describe "#max_files" do
-      it "is readable and writable" do
-        instance.max_files = 20
+    context "when data contains max_files key" do
+      it "deserializes with integer value" do
+        data = { "max_files" => 20 }
+        instance = described_class.deserialize(data)
         expect(instance.max_files).to eq(20)
       end
+
+      it "deserializes with nil value" do
+        data = { "max_files" => nil }
+        instance = described_class.deserialize(data)
+        expect(instance.max_files).to be_nil
+      end
+    end
+
+    context "when data contains all keys" do
+      it "deserializes all values correctly" do
+        data = {
+          "enabled" => true,
+          "max_file_size" => 2048,
+          "max_files" => 30,
+        }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to be(true)
+        expect(instance.max_file_size).to eq(2048)
+        expect(instance.max_files).to eq(30)
+      end
+    end
+
+    context "when data contains extra keys" do
+      it "extracts only relevant keys using dig" do
+        data = {
+          "enabled" => false,
+          "max_file_size" => 512,
+          "max_files" => 10,
+          "extra_key" => "ignored",
+        }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to be(false)
+        expect(instance.max_file_size).to eq(512)
+        expect(instance.max_files).to eq(10)
+      end
+    end
+
+    it "returns an instance of FileUpload" do
+      instance = described_class.deserialize({ "enabled" => true })
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe "#serialize" do
-    context "when all values are present" do
-      it "returns a hash with all keys" do
-        instance = described_class.new(
-          enabled: true,
-          max_file_size: 256,
-          max_files: 8
-        )
+    context "when all attributes have values" do
+      it "serializes to hash with all keys" do
+        instance = described_class.new(enabled: true, max_file_size: 1024, max_files: 20)
         result = instance.serialize
-
         expect(result).to eq({
           enabled: true,
-          max_file_size: 256,
-          max_files: 8,
+          max_file_size: 1024,
+          max_files: 20,
         })
       end
     end
 
-    context "when some values are nil" do
-      it "returns a hash without nil values due to compact" do
-        instance = described_class.new(
-          enabled: nil,
-          max_file_size: 256,
-          max_files: nil
-        )
+    context "when enabled is true" do
+      it "serializes enabled key" do
+        instance = described_class.new(enabled: true, max_file_size: 512, max_files: 10)
         result = instance.serialize
-
-        expect(result).to eq({ max_file_size: 256 })
+        expect(result[:enabled]).to be(true)
       end
     end
 
-    context "when all values are nil" do
-      it "returns an empty hash due to compact" do
-        instance = described_class.new(
-          enabled: nil,
-          max_file_size: nil,
-          max_files: nil
-        )
+    context "when enabled is false" do
+      it "serializes enabled key" do
+        instance = described_class.new(enabled: false, max_file_size: 512, max_files: 10)
         result = instance.serialize
+        expect(result[:enabled]).to be(false)
+      end
+    end
 
+    context "when enabled is nil" do
+      it "omits enabled from serialized hash (compacts nil values)" do
+        instance = described_class.new(enabled: nil, max_file_size: 512, max_files: 10)
+        result = instance.serialize
+        expect(result).not_to have_key(:enabled)
+      end
+    end
+
+    context "when max_file_size is nil" do
+      it "omits max_file_size from serialized hash" do
+        instance = described_class.new(enabled: true, max_file_size: nil, max_files: 10)
+        result = instance.serialize
+        expect(result).not_to have_key(:max_file_size)
+      end
+    end
+
+    context "when max_files is nil" do
+      it "omits max_files from serialized hash" do
+        instance = described_class.new(enabled: true, max_file_size: 512, max_files: nil)
+        result = instance.serialize
+        expect(result).not_to have_key(:max_files)
+      end
+    end
+
+    context "when all attributes are nil" do
+      it "serializes to empty hash" do
+        instance = described_class.new(enabled: nil, max_file_size: nil, max_files: nil)
+        result = instance.serialize
         expect(result).to eq({})
       end
     end
 
     context "when using default values" do
-      it "returns a hash with default values" do
+      it "serializes with default values" do
         instance = described_class.new
         result = instance.serialize
-
         expect(result).to eq({
           enabled: ChatKit::Session::Defaults::ENABLED,
           max_file_size: described_class::Defaults::MAX_FILE_SIZE,
@@ -424,15 +317,329 @@ RSpec.describe ChatKit::Session::ChatKitConfiguration::FileUpload do
         })
       end
     end
+
+    it "returns a hash" do
+      instance = described_class.new(enabled: true, max_file_size: 512, max_files: 10)
+      result = instance.serialize
+      expect(result).to be_a(Hash)
+    end
   end
 
-  describe "::Defaults" do
-    it "defines MAX_FILE_SIZE constant" do
+  describe "attribute accessors" do
+    let(:instance) { described_class.new }
+
+    describe "#enabled" do
+      it "allows reading the enabled value" do
+        expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
+      end
+
+      it "allows writing true value" do
+        instance.enabled = true
+        expect(instance.enabled).to be(true)
+      end
+
+      it "allows writing false value" do
+        instance.enabled = false
+        expect(instance.enabled).to be(false)
+      end
+
+      it "allows writing nil value" do
+        instance.enabled = nil
+        expect(instance.enabled).to be_nil
+      end
+    end
+
+    describe "#max_file_size" do
+      it "allows reading the max_file_size value" do
+        expect(instance.max_file_size).to eq(described_class::Defaults::MAX_FILE_SIZE)
+      end
+
+      it "allows writing integer value" do
+        instance.max_file_size = 2048
+        expect(instance.max_file_size).to eq(2048)
+      end
+
+      it "allows writing nil value" do
+        instance.max_file_size = nil
+        expect(instance.max_file_size).to be_nil
+      end
+
+      it "allows writing zero value" do
+        instance.max_file_size = 0
+        expect(instance.max_file_size).to eq(0)
+      end
+    end
+
+    describe "#max_files" do
+      it "allows reading the max_files value" do
+        expect(instance.max_files).to eq(described_class::Defaults::MAX_FILES)
+      end
+
+      it "allows writing integer value" do
+        instance.max_files = 50
+        expect(instance.max_files).to eq(50)
+      end
+
+      it "allows writing nil value" do
+        instance.max_files = nil
+        expect(instance.max_files).to be_nil
+      end
+
+      it "allows writing zero value" do
+        instance.max_files = 0
+        expect(instance.max_files).to eq(0)
+      end
+    end
+  end
+
+  describe "integration with FactoryBot" do
+    context "using default factory" do
+      it "creates valid instance" do
+        instance = build(:file_upload)
+        expect(instance).to be_a(described_class)
+        expect(instance.enabled).to be(true)
+        expect(instance.max_file_size).to eq(256)
+        expect(instance.max_files).to eq(5)
+      end
+    end
+
+    context "using :enabled trait" do
+      it "creates instance with enabled true" do
+        instance = build(:file_upload, :enabled)
+        expect(instance.enabled).to be(true)
+      end
+    end
+
+    context "using :disabled trait" do
+      it "creates instance with enabled false" do
+        instance = build(:file_upload, :disabled)
+        expect(instance.enabled).to be(false)
+      end
+    end
+
+    context "using :nil_enabled trait" do
+      it "creates instance with nil enabled" do
+        instance = build(:file_upload, :nil_enabled)
+        expect(instance.enabled).to be_nil
+      end
+    end
+
+    context "using :default_enabled trait" do
+      it "creates instance with default enabled value" do
+        instance = build(:file_upload, :default_enabled)
+        expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
+      end
+    end
+
+    context "using :large_files trait" do
+      it "creates instance with large file limits" do
+        instance = build(:file_upload, :large_files)
+        expect(instance.max_file_size).to eq(1024)
+        expect(instance.max_files).to eq(20)
+      end
+    end
+
+    context "using :small_files trait" do
+      it "creates instance with small file limits" do
+        instance = build(:file_upload, :small_files)
+        expect(instance.max_file_size).to eq(64)
+        expect(instance.max_files).to eq(2)
+      end
+    end
+
+    context "using :default_limits trait" do
+      it "creates instance with default file limits" do
+        instance = build(:file_upload, :default_limits)
+        expect(instance.max_file_size).to eq(described_class::Defaults::MAX_FILE_SIZE)
+        expect(instance.max_files).to eq(described_class::Defaults::MAX_FILES)
+      end
+    end
+
+    context "using :nil_limits trait" do
+      it "creates instance with nil file limits" do
+        instance = build(:file_upload, :nil_limits)
+        expect(instance.max_file_size).to be_nil
+        expect(instance.max_files).to be_nil
+      end
+    end
+
+    context "overriding values" do
+      it "allows custom enabled value" do
+        instance = build(:file_upload, enabled: false)
+        expect(instance.enabled).to be(false)
+      end
+
+      it "allows custom max_file_size value" do
+        instance = build(:file_upload, max_file_size: 4096)
+        expect(instance.max_file_size).to eq(4096)
+      end
+
+      it "allows custom max_files value" do
+        instance = build(:file_upload, max_files: 100)
+        expect(instance.max_files).to eq(100)
+      end
+    end
+
+    context "combining traits" do
+      it "allows combining :disabled with :large_files" do
+        instance = build(:file_upload, :disabled, :large_files)
+        expect(instance.enabled).to be(false)
+        expect(instance.max_file_size).to eq(1024)
+        expect(instance.max_files).to eq(20)
+      end
+    end
+  end
+
+  describe "round-trip serialization" do
+    it "maintains data integrity when serializing and deserializing" do
+      original = described_class.new(enabled: true, max_file_size: 1024, max_files: 25)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.max_file_size).to eq(original.max_file_size)
+      expect(deserialized.max_files).to eq(original.max_files)
+    end
+
+    it "maintains data integrity with false enabled" do
+      original = described_class.new(enabled: false, max_file_size: 512, max_files: 10)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.max_file_size).to eq(original.max_file_size)
+      expect(deserialized.max_files).to eq(original.max_files)
+    end
+
+    it "handles nil values in round-trip" do
+      original = described_class.new(enabled: nil, max_file_size: nil, max_files: nil)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.max_file_size).to eq(original.max_file_size)
+      expect(deserialized.max_files).to eq(original.max_files)
+    end
+
+    it "handles partial nil values in round-trip" do
+      original = described_class.new(enabled: true, max_file_size: nil, max_files: 10)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.max_file_size).to eq(original.max_file_size)
+      expect(deserialized.max_files).to eq(original.max_files)
+    end
+  end
+
+  describe "edge cases" do
+    context "when modifying attributes after initialization" do
+      it "allows toggling enabled state" do
+        instance = described_class.new(enabled: true, max_file_size: 512, max_files: 10)
+        expect(instance.enabled).to be(true)
+
+        instance.enabled = false
+        expect(instance.enabled).to be(false)
+
+        instance.enabled = true
+        expect(instance.enabled).to be(true)
+      end
+
+      it "allows changing file size limits" do
+        instance = described_class.new(enabled: true, max_file_size: 512, max_files: 10)
+        expect(instance.max_file_size).to eq(512)
+
+        instance.max_file_size = 2048
+        expect(instance.max_file_size).to eq(2048)
+      end
+
+      it "allows changing file count limits" do
+        instance = described_class.new(enabled: true, max_file_size: 512, max_files: 10)
+        expect(instance.max_files).to eq(10)
+
+        instance.max_files = 50
+        expect(instance.max_files).to eq(50)
+      end
+    end
+
+    context "when serializing multiple times" do
+      it "produces consistent results" do
+        instance = described_class.new(enabled: true, max_file_size: 1024, max_files: 20)
+        first_serialization = instance.serialize
+        second_serialization = instance.serialize
+        expect(first_serialization).to eq(second_serialization)
+      end
+    end
+
+    context "when deserializing with unexpected data types" do
+      it "handles string values for enabled" do
+        data = { "enabled" => "true" }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to eq("true")
+      end
+
+      it "handles string values for max_file_size" do
+        data = { "max_file_size" => "1024" }
+        instance = described_class.deserialize(data)
+        expect(instance.max_file_size).to eq("1024")
+      end
+
+      it "handles string values for max_files" do
+        data = { "max_files" => "20" }
+        instance = described_class.deserialize(data)
+        expect(instance.max_files).to eq("20")
+      end
+    end
+
+    context "when working with boundary values" do
+      it "handles very large file sizes" do
+        instance = described_class.new(max_file_size: 999_999)
+        expect(instance.max_file_size).to eq(999_999)
+        serialized = instance.serialize
+        expect(serialized[:max_file_size]).to eq(999_999)
+      end
+
+      it "handles very large file counts" do
+        instance = described_class.new(max_files: 10_000)
+        expect(instance.max_files).to eq(10_000)
+        serialized = instance.serialize
+        expect(serialized[:max_files]).to eq(10_000)
+      end
+
+      it "handles zero file size" do
+        instance = described_class.new(max_file_size: 0)
+        expect(instance.max_file_size).to eq(0)
+        serialized = instance.serialize
+        expect(serialized[:max_file_size]).to eq(0)
+      end
+
+      it "handles zero file count" do
+        instance = described_class.new(max_files: 0)
+        expect(instance.max_files).to eq(0)
+        serialized = instance.serialize
+        expect(serialized[:max_files]).to eq(0)
+      end
+    end
+  end
+
+  describe "constants and defaults" do
+    it "has correct MAX_FILE_SIZE default" do
       expect(described_class::Defaults::MAX_FILE_SIZE).to eq(512)
     end
 
-    it "defines MAX_FILES constant" do
+    it "has correct MAX_FILES default" do
       expect(described_class::Defaults::MAX_FILES).to eq(10)
+    end
+
+    it "uses Session::Create::Defaults::ENABLED as enabled default" do
+      instance = described_class.new
+      expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
+    end
+
+    it "uses Defaults::MAX_FILE_SIZE as max_file_size default" do
+      instance = described_class.new
+      expect(instance.max_file_size).to eq(described_class::Defaults::MAX_FILE_SIZE)
+    end
+
+    it "uses Defaults::MAX_FILES as max_files default" do
+      instance = described_class.new
+      expect(instance.max_files).to eq(described_class::Defaults::MAX_FILES)
     end
   end
 end

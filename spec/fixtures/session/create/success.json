@@ -1,0 +1,35 @@
+{
+  "id": "sess_abc123",
+  "object": "chatkit.session",
+  "status": "active",
+  "client_secret": "chatkit_token_123",
+  "expires_at": "1234567890",
+  "max_requests_per_1_minute": 60,
+  "chatkit_configuration": {
+    "history": {
+      "enabled": true
+    },
+    "file_upload": {
+      "enabled": true,
+      "max_file_size_mb": 10,
+      "max_files": 5
+    },
+    "automatic_thread_titling": {
+      "enabled": false
+    }
+  },
+  "rate_limits": {
+    "max_requests_per_1_minute": 60
+  },
+  "user": {
+    "id": "user_123"
+  },
+  "workflow": {
+    "id": "workflow_alpha",
+    "version": "2024-10-01",
+    "state_variables": null,
+    "tracing": {
+      "enabled": false
+    }
+  }
+}

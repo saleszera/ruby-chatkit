@@ -41,6 +41,8 @@ module ChatKit
         # @param data [Hash, nil]
         #  @return [Workflow]
         def deserialize(data)
+          return data if data.is_a?(self)
+
           tracing = Tracing.deserialize(data&.dig("tracing"))
 
           new(

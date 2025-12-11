@@ -3,7 +3,7 @@
 module ChatKit
   class Session
     # Represents a session response.
-    class Response
+    class BaseResponse
       # @!attribute [r] id
       #  @return [String]
       attr_accessor :id

@@ -1,588 +1,724 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-
 RSpec.describe ChatKit::Session::Workflow do
   describe ".new" do
-    context "when only id is provided" do
-      it "initializes with required id parameter" do
-        workflow = described_class.new(id: "wf_test123")
+    context "when only required arguments are provided" do
+      it "initializes with id" do
+        instance = described_class.new(id: "wf_123")
+        expect(instance.id).to eq("wf_123")
+      end
 
-        expect(workflow.id).to eq("wf_test123")
-        expect(workflow.state_variables).to be_nil
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.version).to be_nil
+      it "sets state_variables to nil by default" do
+        instance = described_class.new(id: "wf_123")
+        expect(instance.state_variables).to be_nil
+      end
+
+      it "sets tracing to Tracing instance by default" do
+        instance = described_class.new(id: "wf_123")
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+      end
+
+      it "sets version to nil by default" do
+        instance = described_class.new(id: "wf_123")
+        expect(instance.version).to be_nil
       end
     end
 
-    context "when all parameters are provided" do
-      let(:state_vars) { { "key1" => "value1", "key2" => "value2" } }
-      let(:tracing_params) { { enabled: true } }
-
-      it "initializes with all provided values" do
-        workflow = described_class.new(
-          id: "wf_full123",
-          state_variables: state_vars,
-          tracing: tracing_params,
+    context "when all arguments are provided" do
+      it "initializes with all values" do
+        tracing_hash = { enabled: true }
+        instance = described_class.new(
+          id: "wf_456",
+          state_variables: { "key" => "value" },
+          tracing: tracing_hash,
           version: "2.0.0"
         )
 
-        expect(workflow.id).to eq("wf_full123")
-        expect(workflow.state_variables).to eq(state_vars)
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be(true)
-        expect(workflow.version).to eq("2.0.0")
+        expect(instance.id).to eq("wf_456")
+        expect(instance.state_variables).to eq({ "key" => "value" })
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+        expect(instance.version).to eq("2.0.0")
       end
-    end
 
-    context "when tracing parameter is nil" do
-      it "creates tracing object from empty hash" do
-        workflow = described_class.new(id: "wf_nil_tracing", tracing: nil)
-
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be_nil
+      it "accepts Tracing instance directly" do
+        tracing_instance = ChatKit::Session::Workflow::Tracing.new(enabled: true)
+        instance = described_class.new(id: "wf_789", tracing: tracing_instance)
+        expect(instance.tracing).to eq(tracing_instance)
       end
-    end
 
-    context "when tracing parameter is empty hash" do
-      it "creates tracing object with default values" do
-        workflow = described_class.new(id: "wf_empty_tracing", tracing: {})
-
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be_nil
+      it "accepts nil state_variables explicitly" do
+        instance = described_class.new(id: "wf_123", state_variables: nil)
+        expect(instance.state_variables).to be_nil
       end
-    end
 
-    context "when state_variables is complex nested hash" do
-      let(:complex_state) do
-        {
-          "config" => { "timeout" => 30, "retries" => 3 },
-          "user_data" => %w[item1 item2],
-          "flags" => { "debug" => true, "verbose" => false },
+      it "accepts empty hash for state_variables" do
+        instance = described_class.new(id: "wf_123", state_variables: {})
+        expect(instance.state_variables).to eq({})
+      end
+
+      it "accepts complex nested state_variables" do
+        state = {
+          "config" => { "timeout" => 30 },
+          "flags" => ["debug"],
         }
-      end
-
-      it "preserves complex state structure" do
-        workflow = described_class.new(id: "wf_complex", state_variables: complex_state)
-
-        expect(workflow.state_variables).to eq(complex_state)
-        expect(workflow.state_variables["config"]["timeout"]).to eq(30)
-        expect(workflow.state_variables["user_data"]).to contain_exactly("item1", "item2")
+        instance = described_class.new(id: "wf_123", state_variables: state)
+        expect(instance.state_variables).to eq(state)
       end
     end
   end
 
   describe ".build" do
-    context "when no parameters provided except id" do
-      it "creates instance with nil optional values" do
-        workflow = described_class.build(id: "wf_build_minimal")
+    context "when only id is provided" do
+      it "creates instance with id" do
+        instance = described_class.build(id: "wf_build_123")
+        expect(instance).to be_a(described_class)
+        expect(instance.id).to eq("wf_build_123")
+      end
 
-        expect(workflow.id).to eq("wf_build_minimal")
-        expect(workflow.state_variables).to be_nil
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.version).to be_nil
+      it "sets state_variables to nil" do
+        instance = described_class.build(id: "wf_build_123")
+        expect(instance.state_variables).to be_nil
+      end
+
+      it "sets version to nil" do
+        instance = described_class.build(id: "wf_build_123")
+        expect(instance.version).to be_nil
+      end
+
+      it "creates Tracing instance" do
+        instance = described_class.build(id: "wf_build_123")
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
       end
     end
 
     context "when all parameters are provided" do
-      let(:state_vars) { { "build_key" => "build_value" } }
-      let(:tracing_params) { { enabled: false } }
-
-      it "creates instance with all provided values" do
-        workflow = described_class.build(
-          id: "wf_build_full",
-          state_variables: state_vars,
-          tracing: tracing_params,
-          version: "1.5.0"
+      it "creates instance with all values" do
+        instance = described_class.build(
+          id: "wf_build_456",
+          state_variables: { "var" => "val" },
+          tracing: { enabled: false },
+          version: "3.0.0"
         )
 
-        expect(workflow.id).to eq("wf_build_full")
-        expect(workflow.state_variables).to eq(state_vars)
-        expect(workflow.tracing.enabled).to be(false)
-        expect(workflow.version).to eq("1.5.0")
+        expect(instance.id).to eq("wf_build_456")
+        expect(instance.state_variables).to eq({ "var" => "val" })
+        expect(instance.tracing.enabled).to eq(false)
+        expect(instance.version).to eq("3.0.0")
       end
+    end
+
+    it "returns an instance of Workflow" do
+      instance = described_class.build(id: "wf_test")
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe ".deserialize" do
-    context "when data contains all required fields" do
-      it "creates an instance with id only" do
-        data = { "id" => "wf_deserialize_minimal" }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.id).to eq("wf_deserialize_minimal")
-        expect(workflow.state_variables).to be_nil
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be_nil
-        expect(workflow.version).to be_nil
+    context "when data is nil" do
+      it "initializes with nil id" do
+        instance = described_class.deserialize(nil)
+        expect(instance.id).to be_nil
       end
 
-      it "creates an instance with all fields populated" do
-        data = {
-          "id" => "wf_deserialize_full",
-          "state_variables" => { "key1" => "value1", "key2" => "value2" },
-          "tracing" => { "enabled" => true },
-          "version" => "2.5.0",
-        }
-        workflow = described_class.deserialize(data)
+      it "initializes with nil state_variables" do
+        instance = described_class.deserialize(nil)
+        expect(instance.state_variables).to be_nil
+      end
 
-        expect(workflow.id).to eq("wf_deserialize_full")
-        expect(workflow.state_variables).to eq({ "key1" => "value1", "key2" => "value2" })
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be(true)
-        expect(workflow.version).to eq("2.5.0")
+      it "initializes with nil version" do
+        instance = described_class.deserialize(nil)
+        expect(instance.version).to be_nil
+      end
+
+      it "creates Tracing instance from nil" do
+        instance = described_class.deserialize(nil)
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+      end
+
+      it "returns an instance of Workflow" do
+        instance = described_class.deserialize(nil)
+        expect(instance).to be_a(described_class)
       end
     end
 
-    context "when data contains partial fields" do
-      it "handles missing state_variables" do
-        data = {
-          "id" => "wf_no_state",
-          "tracing" => { "enabled" => false },
-          "version" => "1.0.0",
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.id).to eq("wf_no_state")
-        expect(workflow.state_variables).to be_nil
-        expect(workflow.tracing.enabled).to be(false)
-        expect(workflow.version).to eq("1.0.0")
-      end
-
-      it "handles missing tracing field" do
-        data = {
-          "id" => "wf_no_tracing",
-          "state_variables" => { "test" => "value" },
-          "version" => "3.0.0",
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.id).to eq("wf_no_tracing")
-        expect(workflow.state_variables).to eq({ "test" => "value" })
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be_nil
-        expect(workflow.version).to eq("3.0.0")
-      end
-
-      it "handles missing version field" do
-        data = {
-          "id" => "wf_no_version",
-          "state_variables" => { "config" => { "timeout" => 30 } },
-          "tracing" => { "enabled" => true },
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.id).to eq("wf_no_version")
-        expect(workflow.state_variables).to eq({ "config" => { "timeout" => 30 } })
-        expect(workflow.tracing.enabled).to be(true)
-        expect(workflow.version).to be_nil
+    context "when data is an empty hash" do
+      it "initializes with nil values" do
+        instance = described_class.deserialize({})
+        expect(instance.id).to be_nil
+        expect(instance.state_variables).to be_nil
+        expect(instance.version).to be_nil
       end
     end
 
-    context "when tracing data has various values" do
-      it "handles tracing with enabled true" do
+    context "when data contains all keys" do
+      it "deserializes complete workflow data" do
         data = {
-          "id" => "wf_tracing_true",
-          "tracing" => { "enabled" => true },
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.tracing.enabled).to be(true)
-      end
-
-      it "handles tracing with enabled false" do
-        data = {
-          "id" => "wf_tracing_false",
-          "tracing" => { "enabled" => false },
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.tracing.enabled).to be(false)
-      end
-
-      it "handles tracing with enabled nil" do
-        data = {
-          "id" => "wf_tracing_nil",
-          "tracing" => { "enabled" => nil },
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.tracing.enabled).to be_nil
-      end
-
-      it "handles empty tracing data" do
-        data = {
-          "id" => "wf_empty_tracing",
-          "tracing" => {},
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.tracing.enabled).to be_nil
-      end
-    end
-
-    context "when state_variables contains complex data" do
-      it "preserves nested hash structures" do
-        complex_state = {
-          "config" => { "timeout" => 30, "retries" => 3 },
-          "user_preferences" => { "theme" => "dark", "language" => "en" },
-          "feature_flags" => { "new_ui" => true, "beta_features" => false },
-          "metadata" => { "created_at" => "2023-01-01", "tags" => %w[important urgent] },
-        }
-        data = {
-          "id" => "wf_complex_state",
-          "state_variables" => complex_state,
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.state_variables).to eq(complex_state)
-        expect(workflow.state_variables["config"]["timeout"]).to eq(30)
-        expect(workflow.state_variables["metadata"]["tags"]).to contain_exactly("important", "urgent")
-      end
-
-      it "handles state_variables as empty hash" do
-        data = {
-          "id" => "wf_empty_state",
-          "state_variables" => {},
-        }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.state_variables).to eq({})
-      end
-    end
-
-    context "with edge cases" do
-      it "ignores extra fields in data" do
-        data = {
-          "id" => "wf_extra_fields",
+          "id" => "wf_deserialize_123",
           "state_variables" => { "key" => "value" },
           "tracing" => { "enabled" => true },
-          "version" => "1.0.0",
-          "extra_field" => "should_be_ignored",
-          "another_field" => 123,
+          "version" => "4.0.0",
         }
-        workflow = described_class.deserialize(data)
+        instance = described_class.deserialize(data)
 
-        expect(workflow.id).to eq("wf_extra_fields")
-        expect(workflow.state_variables).to eq({ "key" => "value" })
-        expect(workflow.tracing.enabled).to be(true)
-        expect(workflow.version).to eq("1.0.0")
+        expect(instance.id).to eq("wf_deserialize_123")
+        expect(instance.state_variables).to eq({ "key" => "value" })
+        expect(instance.tracing.enabled).to eq(true)
+        expect(instance.version).to eq("4.0.0")
       end
 
-      it "returns a new instance each time" do
-        data = { "id" => "wf_new_instance", "version" => "1.0.0" }
-        workflow1 = described_class.deserialize(data)
-        workflow2 = described_class.deserialize(data)
-
-        expect(workflow1).not_to be(workflow2)
-        expect(workflow1.id).to eq(workflow2.id)
-        expect(workflow1.version).to eq(workflow2.version)
-      end
-
-      it "handles string values properly" do
+      it "deserializes with nil state_variables" do
         data = {
-          "id" => "wf_string_handling",
-          "version" => "2.0.0-alpha.1+build.456",
+          "id" => "wf_123",
+          "state_variables" => nil,
+          "version" => "1.0.0",
         }
-        workflow = described_class.deserialize(data)
-
-        expect(workflow.id).to eq("wf_string_handling")
-        expect(workflow.version).to eq("2.0.0-alpha.1+build.456")
-      end
-    end
-
-    context "round-trip serialization" do
-      it "can deserialize what was serialized" do
-        original = described_class.new(
-          id: "wf_roundtrip",
-          state_variables: { "test" => "value", "number" => 42 },
-          tracing: { enabled: true },
-          version: "1.2.3"
-        )
-        serialized = original.serialize
-        # Convert keys to strings to simulate JSON parsing
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        # Also convert the nested tracing keys
-        string_keyed_data["tracing"] = string_keyed_data["tracing"].transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.id).to eq(original.id)
-        expect(deserialized.state_variables).to eq(original.state_variables)
-        expect(deserialized.tracing.enabled).to eq(original.tracing.enabled)
-        expect(deserialized.version).to eq(original.version)
+        instance = described_class.deserialize(data)
+        expect(instance.state_variables).to be_nil
       end
 
-      it "handles nil values in round-trip" do
-        original = described_class.new(
-          id: "wf_nil_roundtrip",
-          state_variables: nil,
-          tracing: { enabled: nil },
-          version: nil
-        )
-        serialized = original.serialize
-        # Since serialize uses compact, nil values are removed
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.id).to eq(original.id)
-        expect(deserialized.state_variables).to be_nil
-        expect(deserialized.tracing.enabled).to be_nil
-        expect(deserialized.version).to be_nil
+      it "deserializes with empty state_variables" do
+        data = {
+          "id" => "wf_123",
+          "state_variables" => {},
+        }
+        instance = described_class.deserialize(data)
+        expect(instance.state_variables).to eq({})
       end
 
-      it "maintains data integrity through multiple round-trips" do
-        original_data = {
-          "id" => "wf_multi_roundtrip",
-          "state_variables" => { "counter" => 5, "active" => true },
+      it "deserializes with complex state_variables" do
+        data = {
+          "id" => "wf_123",
+          "state_variables" => {
+            "nested" => { "data" => "value" },
+            "array" => [1, 2, 3],
+          },
+        }
+        instance = described_class.deserialize(data)
+        expect(instance.state_variables).to eq(data["state_variables"])
+      end
+
+      it "deserializes tracing as Tracing object" do
+        data = {
+          "id" => "wf_123",
           "tracing" => { "enabled" => false },
-          "version" => "0.1.0",
         }
-
-        # First round-trip
-        workflow1 = described_class.deserialize(original_data)
-        serialized1 = workflow1.serialize.transform_keys(&:to_s)
-        serialized1["tracing"] = serialized1["tracing"].transform_keys(&:to_s)
-
-        # Second round-trip
-        workflow2 = described_class.deserialize(serialized1)
-        serialized2 = workflow2.serialize.transform_keys(&:to_s)
-        serialized2["tracing"] = serialized2["tracing"].transform_keys(&:to_s)
-
-        expect(serialized1).to eq(serialized2)
-        expect(workflow2.id).to eq(original_data["id"])
-        expect(workflow2.state_variables).to eq(original_data["state_variables"])
-        expect(workflow2.version).to eq(original_data["version"])
-      end
-    end
-  end
-
-  describe "attribute accessors" do
-    let(:workflow) { described_class.new(id: "wf_accessor_test") }
-
-    describe "#id" do
-      it "is readable and writable" do
-        expect(workflow.id).to eq("wf_accessor_test")
-        workflow.id = "wf_new_id"
-        expect(workflow.id).to eq("wf_new_id")
+        instance = described_class.deserialize(data)
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+        expect(instance.tracing.enabled).to eq(false)
       end
     end
 
-    describe "#state_variables" do
-      it "is readable and writable" do
-        expect(workflow.state_variables).to be_nil
-        new_state = { "test" => "value" }
-        workflow.state_variables = new_state
-        expect(workflow.state_variables).to eq(new_state)
-      end
+    context "when data contains extra keys" do
+      it "extracts only known keys using dig" do
+        data = {
+          "id" => "wf_extra",
+          "state_variables" => { "var" => "val" },
+          "version" => "5.0.0",
+          "extra_key" => "ignored",
+          "another_extra" => "also_ignored",
+        }
+        instance = described_class.deserialize(data)
 
-      it "accepts nil value" do
-        workflow.state_variables = nil
-        expect(workflow.state_variables).to be_nil
+        expect(instance.id).to eq("wf_extra")
+        expect(instance.state_variables).to eq({ "var" => "val" })
+        expect(instance.version).to eq("5.0.0")
       end
     end
 
-    describe "#tracing" do
-      it "is readable and writable" do
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        new_tracing = ChatKit::Session::Workflow::Tracing.new(enabled: false)
-        workflow.tracing = new_tracing
-        expect(workflow.tracing).to eq(new_tracing)
-        expect(workflow.tracing.enabled).to be(false)
-      end
-    end
-
-    describe "#version" do
-      it "is readable and writable" do
-        expect(workflow.version).to be_nil
-        workflow.version = "3.0.0"
-        expect(workflow.version).to eq("3.0.0")
-      end
-
-      it "accepts nil value" do
-        workflow.version = nil
-        expect(workflow.version).to be_nil
-      end
+    it "returns an instance of Workflow" do
+      instance = described_class.deserialize({ "id" => "wf_test" })
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe "#serialize" do
     context "when all attributes have values" do
-      let(:state_vars) { { "serialize_key" => "serialize_value" } }
-      let(:tracing_params) { { enabled: true } }
-      let(:workflow) do
-        described_class.new(
-          id: "wf_serialize_full",
-          state_variables: state_vars,
-          tracing: tracing_params,
-          version: "2.1.0"
+      it "serializes to complete hash" do
+        tracing = ChatKit::Session::Workflow::Tracing.new(enabled: true)
+        instance = described_class.new(
+          id: "wf_serialize_123",
+          state_variables: { "key" => "value" },
+          tracing:,
+          version: "6.0.0"
         )
+        result = instance.serialize
+
+        expect(result[:id]).to eq("wf_serialize_123")
+        expect(result[:state_variables]).to eq({ "key" => "value" })
+        expect(result[:tracing]).to be_a(Hash)
+        expect(result[:version]).to eq("6.0.0")
       end
 
-      it "returns hash with all attributes" do
-        result = workflow.serialize
+      it "calls serialize on tracing object" do
+        tracing = ChatKit::Session::Workflow::Tracing.new(enabled: false)
+        instance = described_class.new(id: "wf_123", tracing:)
+        result = instance.serialize
 
-        expect(result).to eq({
-          id: "wf_serialize_full",
-          state_variables: state_vars,
-          tracing: { enabled: true },
-          version: "2.1.0",
-        })
+        expect(result[:tracing]).to eq(tracing.serialize)
       end
     end
 
     context "when optional attributes are nil" do
-      let(:workflow) { described_class.new(id: "wf_serialize_minimal") }
+      it "compacts nil values from serialized hash" do
+        instance = described_class.new(
+          id: "wf_compact",
+          state_variables: nil,
+          version: nil
+        )
+        result = instance.serialize
 
-      it "excludes nil values due to compact" do
-        result = workflow.serialize
-
-        expect(result).to eq({
-          id: "wf_serialize_minimal",
-          tracing: {},
-        })
+        expect(result).to have_key(:id)
+        expect(result).to have_key(:tracing)
         expect(result).not_to have_key(:state_variables)
         expect(result).not_to have_key(:version)
       end
     end
 
     context "when state_variables is empty hash" do
-      let(:workflow) do
-        described_class.new(
-          id: "wf_empty_state",
-          state_variables: {},
-          version: "1.0.0"
-        )
-      end
-
       it "includes empty hash in serialization" do
-        result = workflow.serialize
-
+        instance = described_class.new(id: "wf_123", state_variables: {})
+        result = instance.serialize
         expect(result[:state_variables]).to eq({})
-        expect(result).to have_key(:state_variables)
       end
     end
 
-    context "when tracing is disabled" do
-      let(:workflow) do
-        described_class.new(
-          id: "wf_disabled_tracing",
-          tracing: { enabled: false }
-        )
-      end
-
-      it "includes tracing with enabled: false" do
-        result = workflow.serialize
-
-        expect(result[:tracing]).to eq({ enabled: false })
+    context "when state_variables has complex structure" do
+      it "serializes complex nested structure" do
+        state = {
+          "config" => { "timeout" => 30, "retries" => 3 },
+          "flags" => %w[debug verbose],
+        }
+        instance = described_class.new(id: "wf_123", state_variables: state)
+        result = instance.serialize
+        expect(result[:state_variables]).to eq(state)
       end
     end
 
-    context "when tracing enabled is nil" do
-      let(:workflow) do
-        described_class.new(
-          id: "wf_nil_tracing_enabled",
-          tracing: { enabled: nil }
-        )
+    it "returns a hash" do
+      instance = described_class.new(id: "wf_test")
+      result = instance.serialize
+      expect(result).to be_a(Hash)
+    end
+  end
+
+  describe "attribute accessors" do
+    let(:instance) { described_class.new(id: "wf_accessor_test") }
+
+    describe "#id" do
+      it "allows reading the id value" do
+        expect(instance.id).to eq("wf_accessor_test")
       end
 
-      it "excludes enabled from tracing due to compact" do
-        result = workflow.serialize
+      it "allows writing new id value" do
+        instance.id = "wf_new_id"
+        expect(instance.id).to eq("wf_new_id")
+      end
 
-        expect(result[:tracing]).to eq({})
+      it "allows setting to nil" do
+        instance.id = nil
+        expect(instance.id).to be_nil
+      end
+    end
+
+    describe "#state_variables" do
+      it "allows reading the state_variables value" do
+        expect(instance.state_variables).to be_nil
+      end
+
+      it "allows writing hash value" do
+        instance.state_variables = { "new_key" => "new_value" }
+        expect(instance.state_variables).to eq({ "new_key" => "new_value" })
+      end
+
+      it "allows writing nil value" do
+        instance.state_variables = { "key" => "value" }
+        instance.state_variables = nil
+        expect(instance.state_variables).to be_nil
+      end
+
+      it "allows writing empty hash" do
+        instance.state_variables = {}
+        expect(instance.state_variables).to eq({})
+      end
+    end
+
+    describe "#tracing" do
+      it "allows reading the tracing value" do
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+      end
+
+      it "allows writing new Tracing instance" do
+        new_tracing = ChatKit::Session::Workflow::Tracing.new(enabled: false)
+        instance.tracing = new_tracing
+        expect(instance.tracing).to eq(new_tracing)
+      end
+    end
+
+    describe "#version" do
+      it "allows reading the version value" do
+        expect(instance.version).to be_nil
+      end
+
+      it "allows writing string value" do
+        instance.version = "7.0.0"
+        expect(instance.version).to eq("7.0.0")
+      end
+
+      it "allows writing nil value" do
+        instance.version = "1.0.0"
+        instance.version = nil
+        expect(instance.version).to be_nil
       end
     end
   end
 
-  describe "integration with Tracing" do
-    context "when tracing parameter is provided as hash" do
-      it "converts hash to Tracing object" do
+  describe "integration with FactoryBot" do
+    context "using default factory" do
+      it "creates valid instance" do
+        instance = build(:workflow)
+        expect(instance).to be_a(described_class)
+        expect(instance.id).to eq("wf_abc123")
+        expect(instance.state_variables).to eq({ "variable1" => "value1", "variable2" => "value2" })
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+        expect(instance.version).to eq("1.0.0")
+      end
+    end
+
+    context "using :minimal trait" do
+      it "creates instance with minimal attributes" do
+        instance = build(:workflow, :minimal)
+        expect(instance.id).to eq("wf_abc123")
+        expect(instance.state_variables).to be_nil
+        expect(instance.version).to be_nil
+      end
+    end
+
+    context "using :with_nil_state trait" do
+      it "creates instance with nil state_variables" do
+        instance = build(:workflow, :with_nil_state)
+        expect(instance.state_variables).to be_nil
+      end
+    end
+
+    context "using :with_empty_state trait" do
+      it "creates instance with empty state_variables" do
+        instance = build(:workflow, :with_empty_state)
+        expect(instance.state_variables).to eq({})
+      end
+    end
+
+    context "using :with_nil_version trait" do
+      it "creates instance with nil version" do
+        instance = build(:workflow, :with_nil_version)
+        expect(instance.version).to be_nil
+      end
+    end
+
+    context "using :with_complex_state trait" do
+      it "creates instance with complex state_variables" do
+        instance = build(:workflow, :with_complex_state)
+        expect(instance.state_variables).to include("config", "user_input", "flags")
+        expect(instance.state_variables["config"]).to eq({ "timeout" => 30, "retries" => 3 })
+        expect(instance.state_variables["flags"]).to eq(%w[debug verbose])
+      end
+    end
+
+    context "overriding attributes" do
+      it "allows custom id" do
+        instance = build(:workflow, id: "wf_custom")
+        expect(instance.id).to eq("wf_custom")
+      end
+
+      it "allows custom state_variables" do
+        instance = build(:workflow, state_variables: { "custom" => "state" })
+        expect(instance.state_variables).to eq({ "custom" => "state" })
+      end
+
+      it "allows custom version" do
+        instance = build(:workflow, version: "10.0.0")
+        expect(instance.version).to eq("10.0.0")
+      end
+    end
+  end
+
+  describe "round-trip serialization" do
+    it "maintains data integrity with all attributes" do
+      original = described_class.new(
+        id: "wf_roundtrip",
+        state_variables: { "key" => "value" },
+        version: "8.0.0"
+      )
+      serialized = original.serialize
+      deserialized = described_class.deserialize(JSON.parse(serialized.to_json))
+
+      expect(deserialized.id).to eq(original.id)
+      expect(deserialized.state_variables).to eq(original.state_variables)
+      expect(deserialized.version).to eq(original.version)
+    end
+
+    it "maintains data integrity with minimal attributes" do
+      original = described_class.new(id: "wf_minimal")
+      serialized = original.serialize
+      deserialized = described_class.deserialize(JSON.parse(serialized.to_json))
+
+      expect(deserialized.id).to eq(original.id)
+      expect(deserialized.state_variables).to eq(original.state_variables)
+      expect(deserialized.version).to eq(original.version)
+    end
+
+    it "maintains data integrity with complex state_variables" do
+      original = described_class.new(
+        id: "wf_complex",
+        state_variables: {
+          "nested" => { "deep" => { "value" => 123 } },
+          "array" => [1, 2, 3],
+        }
+      )
+      serialized = original.serialize
+      deserialized = described_class.deserialize(JSON.parse(serialized.to_json))
+
+      expect(deserialized.state_variables).to eq(original.state_variables)
+    end
+
+    it "maintains tracing data integrity" do
+      original = described_class.new(
+        id: "wf_tracing",
+        tracing: { enabled: true }
+      )
+      serialized = original.serialize
+      deserialized = described_class.deserialize(JSON.parse(serialized.to_json))
+
+      expect(deserialized.tracing.enabled).to eq(original.tracing.enabled)
+    end
+  end
+
+  describe "edge cases" do
+    context "when modifying attributes after initialization" do
+      it "allows changing id" do
+        instance = described_class.new(id: "wf_original")
+        expect(instance.id).to eq("wf_original")
+
+        instance.id = "wf_modified"
+        expect(instance.id).to eq("wf_modified")
+      end
+
+      it "allows changing state_variables" do
+        instance = described_class.new(id: "wf_123", state_variables: { "old" => "value" })
+        instance.state_variables = { "new" => "value" }
+        expect(instance.state_variables).to eq({ "new" => "value" })
+      end
+
+      it "allows changing version" do
+        instance = described_class.new(id: "wf_123", version: "1.0.0")
+        instance.version = "2.0.0"
+        expect(instance.version).to eq("2.0.0")
+      end
+
+      it "allows changing tracing" do
+        instance = described_class.new(id: "wf_123")
+        new_tracing = ChatKit::Session::Workflow::Tracing.new(enabled: false)
+        instance.tracing = new_tracing
+        expect(instance.tracing.enabled).to eq(false)
+      end
+    end
+
+    context "when serializing multiple times" do
+      it "produces consistent results" do
+        instance = described_class.new(
+          id: "wf_consistent",
+          state_variables: { "key" => "value" },
+          version: "9.0.0"
+        )
+        first_serialization = instance.serialize
+        second_serialization = instance.serialize
+
+        expect(first_serialization).to eq(second_serialization)
+      end
+    end
+
+    context "when modifying after serialization" do
+      it "subsequent serializations reflect modifications" do
+        instance = described_class.new(id: "wf_123", version: "1.0.0")
+        first_result = instance.serialize
+        expect(first_result[:version]).to eq("1.0.0")
+
+        instance.version = "2.0.0"
+        second_result = instance.serialize
+        expect(second_result[:version]).to eq("2.0.0")
+      end
+
+      it "handles transition to nil" do
+        instance = described_class.new(id: "wf_123", version: "1.0.0")
+        first_result = instance.serialize
+        expect(first_result).to have_key(:version)
+
+        instance.version = nil
+        second_result = instance.serialize
+        expect(second_result).not_to have_key(:version)
+      end
+    end
+
+    context "when deserializing with unexpected data types" do
+      it "handles string values for state_variables" do
+        data = {
+          "id" => "wf_123",
+          "state_variables" => "not_a_hash",
+        }
+        instance = described_class.deserialize(data)
+        expect(instance.state_variables).to eq("not_a_hash")
+      end
+
+      it "handles numeric id" do
+        data = { "id" => 123 }
+        instance = described_class.deserialize(data)
+        expect(instance.id).to eq(123)
+      end
+    end
+
+    context "when working with tracing parameter" do
+      it "converts hash to Tracing instance on initialization" do
+        instance = described_class.new(id: "wf_123", tracing: { enabled: true })
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+        expect(instance.tracing.enabled).to eq(true)
+      end
+
+      it "converts empty hash to Tracing instance" do
+        instance = described_class.new(id: "wf_123", tracing: {})
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+      end
+
+      it "preserves Tracing instance when passed directly" do
+        tracing = ChatKit::Session::Workflow::Tracing.new(enabled: false)
+        instance = described_class.new(id: "wf_123", tracing:)
+        expect(instance.tracing).to equal(tracing)
+      end
+
+      it "handles nil tracing parameter" do
+        instance = described_class.new(id: "wf_123", tracing: nil)
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+      end
+    end
+
+    context "when working with state_variables structure" do
+      it "preserves array values" do
+        state = { "list" => [1, 2, 3, 4, 5] }
+        instance = described_class.new(id: "wf_123", state_variables: state)
+        expect(instance.state_variables["list"]).to eq([1, 2, 3, 4, 5])
+      end
+
+      it "preserves deeply nested structures" do
+        state = {
+          "level1" => {
+            "level2" => {
+              "level3" => {
+                "value" => "deep",
+              },
+            },
+          },
+        }
+        instance = described_class.new(id: "wf_123", state_variables: state)
+        expect(instance.state_variables.dig("level1", "level2", "level3", "value")).to eq("deep")
+      end
+
+      it "preserves mixed types" do
+        state = {
+          "string" => "text",
+          "number" => 42,
+          "boolean" => true,
+          "null" => nil,
+          "array" => [1, 2, 3],
+          "object" => { "nested" => "value" },
+        }
+        instance = described_class.new(id: "wf_123", state_variables: state)
+        expect(instance.state_variables).to eq(state)
+      end
+    end
+  end
+
+  describe "private methods" do
+    describe "#setup_tracing" do
+      it "returns Tracing instance when given Tracing object" do
+        tracing = ChatKit::Session::Workflow::Tracing.new(enabled: true)
+        instance = described_class.new(id: "wf_123", tracing:)
+        expect(instance.tracing).to equal(tracing)
+      end
+
+      it "converts hash to Tracing instance" do
+        instance = described_class.new(id: "wf_123", tracing: { enabled: false })
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+        expect(instance.tracing.enabled).to eq(false)
+      end
+
+      it "handles nil by creating Tracing with no arguments" do
+        instance = described_class.new(id: "wf_123", tracing: nil)
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+      end
+    end
+  end
+
+  describe "API documentation compliance" do
+    context "according to OpenAI API reference" do
+      it "requires id parameter" do
+        expect { described_class.new }.to raise_error(ArgumentError)
+      end
+
+      it "accepts optional state_variables" do
+        instance = described_class.new(id: "wf_123")
+        expect(instance.state_variables).to be_nil
+      end
+
+      it "accepts optional tracing" do
+        instance = described_class.new(id: "wf_123")
+        expect(instance.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
+      end
+
+      it "accepts optional version" do
+        instance = described_class.new(id: "wf_123")
+        expect(instance.version).to be_nil
+      end
+    end
+  end
+
+  describe "common use cases" do
+    context "workflow creation scenarios" do
+      it "creates workflow with just id" do
+        workflow = described_class.new(id: "wf_simple")
+        expect(workflow.id).to eq("wf_simple")
+      end
+
+      it "creates workflow with id and version" do
+        workflow = described_class.new(id: "wf_versioned", version: "1.2.3")
+        expect(workflow.id).to eq("wf_versioned")
+        expect(workflow.version).to eq("1.2.3")
+      end
+
+      it "creates workflow with state" do
         workflow = described_class.new(
-          id: "wf_tracing_integration",
+          id: "wf_stateful",
+          state_variables: { "user_id" => "123", "session_id" => "abc" }
+        )
+        expect(workflow.state_variables).to include("user_id", "session_id")
+      end
+
+      it "creates workflow with tracing enabled" do
+        workflow = described_class.new(
+          id: "wf_traced",
           tracing: { enabled: true }
         )
-
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be(true)
+        expect(workflow.tracing.enabled).to eq(true)
       end
-    end
 
-    context "when tracing parameter responds to to_h" do
-      it "converts to hash and creates tracing object" do
-        custom_tracing = Struct.new(:enabled) do
-          def to_h
-            { enabled: }
-          end
-        end.new(false)
-
+      it "creates fully configured workflow" do
         workflow = described_class.new(
-          id: "wf_custom_tracing",
-          tracing: custom_tracing
-        )
-
-        expect(workflow.tracing).to be_a(ChatKit::Session::Workflow::Tracing)
-        expect(workflow.tracing.enabled).to be(false)
-      end
-    end
-  end
-
-  describe "edge cases and validation" do
-    context "with boundary values" do
-      it "handles empty string id" do
-        workflow = described_class.new(id: "")
-        expect(workflow.id).to eq("")
-      end
-
-      it "handles very long id" do
-        long_id = "wf_#{'x' * 1000}"
-        workflow = described_class.new(id: long_id)
-        expect(workflow.id).to eq(long_id)
-      end
-
-      it "handles version with special characters" do
-        workflow = described_class.new(id: "wf_test", version: "1.0.0-beta.1+build.123")
-        expect(workflow.version).to eq("1.0.0-beta.1+build.123")
-      end
-    end
-
-    context "when comparing new vs build methods" do
-      it "produces identical results when same parameters provided" do
-        params = {
-          id: "wf_comparison",
-          state_variables: { "key" => "value" },
+          id: "wf_full",
+          state_variables: { "config" => "production" },
           tracing: { enabled: true },
-          version: "1.0.0",
-        }
-
-        workflow_new = described_class.new(**params)
-        workflow_build = described_class.build(**params)
-
-        expect(workflow_new.serialize).to eq(workflow_build.serialize)
-      end
-    end
-
-    context "when checking serialization consistency" do
-      it "maintains consistent serialization across multiple calls" do
-        workflow = described_class.new(
-          id: "wf_consistency",
-          state_variables: { "test" => "value" },
-          version: "1.0.0"
+          version: "2.1.0"
         )
-
-        first_serialize = workflow.serialize
-        second_serialize = workflow.serialize
-
-        expect(first_serialize).to eq(second_serialize)
-      end
-
-      it "reflects changes in subsequent serializations" do
-        workflow = described_class.new(id: "wf_changes")
-
-        original_serialize = workflow.serialize
-        workflow.version = "2.0.0"
-        updated_serialize = workflow.serialize
-
-        expect(original_serialize).not_to have_key(:version)
-        expect(updated_serialize[:version]).to eq("2.0.0")
+        expect(workflow.id).to eq("wf_full")
+        expect(workflow.state_variables).to eq({ "config" => "production" })
+        expect(workflow.tracing.enabled).to eq(true)
+        expect(workflow.version).to eq("2.1.0")
       end
     end
   end
