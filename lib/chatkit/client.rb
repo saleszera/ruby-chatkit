@@ -58,6 +58,17 @@ module ChatKit
       )
     end
 
+    # Cancels the current session or a specified session by ID.
+    # @param session_id [String] - The ID of the session to cancel.
+    #
+    # @raise [RuntimeError] If no session ID is provided and there is no current session.
+    # @return [Session::Cancel::Response] The response from the cancel operation.
+    def cancel_session!(session_id:)
+      raise "No session ID provided" if session_id.nil?
+
+      Session.cancel!(session_id:, client: self)
+    end
+
     # Sends a message in a conversation, optionally uploading files.
     # @param text [String] The text message to send.
     # @param files [Array<File>] - optional - The files to upload and attach to the message.
