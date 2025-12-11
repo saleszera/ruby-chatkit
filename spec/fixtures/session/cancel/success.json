@@ -1,0 +1,34 @@
+{
+	"id": "cksess_123",
+	"object": "chatkit.session",
+	"status": "cancelled",
+	"chatkit_configuration": {
+		"automatic_thread_titling": {
+			"enabled": true
+		},
+		"file_upload": {
+			"enabled": false,
+			"max_file_size": 512,
+			"max_files": 10
+		},
+		"history": {
+			"enabled": true,
+			"recent_threads": null
+		}
+	},
+	"client_secret": "",
+	"expires_at": 1765453320,
+	"max_requests_per_1_minute": 10,
+	"rate_limits": {
+		"max_requests_per_1_minute": 10
+	},
+	"user": "123",
+	"workflow": {
+		"id": "wf_123",
+		"state_variables": null,
+		"tracing": {
+			"enabled": true
+		},
+		"version": null
+	}
+}

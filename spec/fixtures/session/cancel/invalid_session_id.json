@@ -1,0 +1,8 @@
+{
+	"error": {
+		"message": "Invalid 'session_id': 'id'. Expected an ID that begins with 'cksess'.",
+		"type": "invalid_request_error",
+		"param": "session_id",
+		"code": "invalid_value"
+	}
+}
