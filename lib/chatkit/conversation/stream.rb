@@ -32,7 +32,7 @@ module ChatKit
       # @param data [String] The raw data chunk.
       # @yield [parsed_data] Yields the parsed data.
       #  @return [void]
-      def process!(data, &)
+      def process!(data)
         log(data)
 
         parsed_data = JSON.parse(data)
