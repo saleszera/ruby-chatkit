@@ -11,10 +11,10 @@ module ChatKit
         @logger = logger
       end
 
-      def stream!(&)
+      def stream!(&block)
         @chunks.body.each do |chunk|
           parser.feed(chunk) do |_, data|
-            process!(data, &)
+            process!(data, &block)
           end
         end
       end
