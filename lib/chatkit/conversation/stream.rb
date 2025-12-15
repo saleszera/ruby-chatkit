@@ -16,6 +16,10 @@ module ChatKit
           parser.feed(chunk) do |_, data|
             process!(data, &block)
           end
+        rescue ArgumentError => e
+          log("Failed to parse chunk: #{e.message}\nChunk: #{chunk}", kind: :error)
+
+          raise
         end
       end
 
@@ -23,10 +27,10 @@ module ChatKit
 
       # @param data [String] The raw data chunk.
       # @return [void]
-      def log(data)
+      def log(data, kind: :debug)
         return unless @logger
 
-        @logger.debug("Stream chunk: #{data}")
+        @logger.send(kind, "Stream chunk: #{data}")
       end
 
       # @param data [String] The raw data chunk.
