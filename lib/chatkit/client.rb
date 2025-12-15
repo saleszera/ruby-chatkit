@@ -15,26 +15,38 @@ module ChatKit
     #  @return [String] The host URL for the ChatKit service.
     attr_accessor :host
 
+    # @!attribute [rw] timeout
+    #  @return [Integer, nil] The timeout for requests.
+    attr_accessor :timeout
+
     # @!attribute [rw] current_session
     #  @return [ChatKit::Session, nil] The current session.
     attr_accessor :current_session
 
     # @param api_key [String, nil] - optional - The API key for authenticating requests.
     # @param host [String] - optional - The host URL for the ChatKit service.
+    # @param timeout [Integer, nil] - optional - The timeout for requests.
     # @param logger [Logger, nil] - optional - The logger instance.
-    def initialize(api_key: ChatKit.configuration.api_key, host: ChatKit.configuration.host, logger: nil)
+    def initialize(
+      api_key: ChatKit.configuration.api_key, 
+      host: ChatKit.configuration.host,
+      timeout: ChatKit.configuration.timeout,
+      logger: nil
+      )
       @api_key = api_key
       @host = host
-      @current_session = nil
+      @timeout = timeout
       @logger = logger
+      @current_session = nil
     end
 
-    # @return [Net::HTTP]
+    # @return [HTTP]
     def connection
       @connection ||= begin
         http = HTTP.persistent(@host)
         http = http.use(instrumentation: { instrumenter: Instrumentation.new(@logger) }) if @logger
         http = http.auth("Bearer #{@api_key}") if @api_key
+        http = http.timeout(@timeout) if @timeout
 
         http
       end

@@ -122,14 +122,14 @@ module ChatKit
     # Performs the HTTP request to create a session.
     #
     # @param payload [Hash] The request payload.
-    # @return [Net::HTTPResponse] The HTTP response.
+    # @return [HTTP::Response] The HTTP response.
     def perform_request(payload)
       @client.connection.headers(sessions_header).post(sessions_endpoint, json: payload)
     end
 
     # Handles HTTP response errors by raising appropriate exceptions.
     #
-    # @param response [Net::HTTPResponse] The HTTP response to check.
+    # @param response [HTTP::Response] The HTTP response to check.
     # @raise [SessionError] If the response indicates an error.
     def handle_response_errors(response)
       return unless response.code >= 300
@@ -145,7 +145,7 @@ module ChatKit
 
     # Parses the HTTP response body.
     #
-    # @param response [Net::HTTPResponse] The HTTP response to parse.
+    # @param response [HTTP::Response] The HTTP response to parse.
     # @return [Hash] The parsed response body.
     def parse_response(response)
       Response.deserialize(response.parse)
@@ -159,7 +159,7 @@ module ChatKit
       ChatKit.current_info.session = session_response
     end
 
-    # @param response [Net::HTTPResponse] The HTTP response to parse.
+    # @param response [HTTP::Response] The HTTP response to parse.
     #  @return [Hash] The parsed response body.
     def parse!(response)
       Response.deserialize(response.parse)
