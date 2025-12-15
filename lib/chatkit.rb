@@ -4,7 +4,6 @@ require "logger"
 require "uri"
 require "http"
 require "event_stream_parser"
-require "net/http"
 require "zeitwerk"
 require "pry"
 
