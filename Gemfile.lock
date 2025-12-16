@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ruby-chatkit (0.1.5)
+    ruby-chatkit (0.1.7)
       base64
       event_stream_parser
       http

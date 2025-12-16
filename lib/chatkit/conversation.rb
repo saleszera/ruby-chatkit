@@ -80,6 +80,8 @@ module ChatKit
     def perform_request!
       payload = build_payload
 
+      @logger&.info("Starting conversation with payload: #{payload}")
+
       result = @client.connection.headers(conversation_headers).post(
         conversation_endpoint,
         json: payload
