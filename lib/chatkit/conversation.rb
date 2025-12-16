@@ -107,7 +107,7 @@ module ChatKit
 
       payload = Defaults::PAYLOAD.dup
 
-      payload[:params][:input][:content] << { type: "input_text", text: @text }
+      payload[:params][:input][:content] = [{ type: "input_text", text: @text }]
       payload[:params][:input][:attachments] = @attachments if @attachments
 
       if current_thread&.id
