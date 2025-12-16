@@ -13,7 +13,7 @@ module ChatKit
 
       def stream!(&block)
         @chunks.body.each do |chunk|
-          parser.feed(chunk) do |_, data|
+          parser.feed(string_sanitize(chunk)) do |_, data|
             process!(data, &block)
           end
         rescue ArgumentError => e
@@ -47,6 +47,14 @@ module ChatKit
       # @return [EventStreamParser::Parser]
       def parser
         @parser ||= EventStreamParser::Parser.new
+      end
+
+      # @param str [String] The string to sanitize.
+      # @return [String]
+      def string_sanitize(str)
+        return str if str.valid_encoding?
+
+        str.encode("UTF-8", "ISO-8859-1", invalid: :replace, undef: :replace)
       end
     end
   end

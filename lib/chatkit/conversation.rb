@@ -101,6 +101,8 @@ module ChatKit
     # Builds the payload for the conversation request.
     # @return [Hash] The payload hash.
     def build_payload
+      raise ArgumentError, "Text must be a non-empty string" if @text.nil? || !@text.is_a?(String) || @text.strip.empty?
+
       payload = Defaults::PAYLOAD.dup
 
       payload[:params][:input][:content] << { type: "input_text", text: @text }
