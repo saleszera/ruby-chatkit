@@ -1,10 +1,11 @@
 PATH
   remote: .
   specs:
-    ruby-chatkit (0.1.7)
+    ruby-chatkit (0.1.9)
       base64
       event_stream_parser
       http
+      logger
       openssl
       zeitwerk
 
@@ -236,7 +237,6 @@ DEPENDENCIES
   dotenv-rails
   factory_bot (~> 6.5.6)
   irb
-  logger
   pry-byebug
   rake (~> 13.3.1)
   rspec (~> 3.13.2)
