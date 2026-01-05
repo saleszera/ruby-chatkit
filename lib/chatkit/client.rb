@@ -28,11 +28,11 @@ module ChatKit
     # @param timeout [Integer, nil] - optional - The timeout for requests.
     # @param logger [Logger, nil] - optional - The logger instance.
     def initialize(
-      api_key: ChatKit.configuration.api_key, 
+      api_key: ChatKit.configuration.api_key,
       host: ChatKit.configuration.host,
       timeout: ChatKit.configuration.timeout,
       logger: nil
-      )
+    )
       @api_key = api_key
       @host = host
       @timeout = timeout
