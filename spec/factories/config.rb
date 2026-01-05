@@ -4,6 +4,7 @@ FactoryBot.define do
   factory :config, class: "ChatKit::Config" do
     api_key { "test_api_key_456" }
     host { "https://test-config.openai.com" }
+    timeout { nil }
 
     trait :with_nil_api_key do
       api_key { nil }
@@ -25,19 +26,6 @@ FactoryBot.define do
       host { "http://localhost:3000" }
     end
 
-    trait :with_environment_defaults do
-      transient do
-        env_api_key { "env_test_key_789" }
-      end
-
-      before(:build) do |_config, evaluator|
-        allow(ENV).to receive(:fetch).with("OPENAI_API_KEY", nil).and_return(evaluator.env_api_key)
-      end
-
-      api_key { nil }
-      host { ChatKit::Client::OpenAI::HOST }
-    end
-
     trait :production_config do
       api_key { "sk-prod123456789" }
       host { ChatKit::Client::OpenAI::HOST }
@@ -48,6 +36,6 @@ FactoryBot.define do
       host { "http://localhost:8000" }
     end
 
-    initialize_with { new(api_key:, host:) }
+    initialize_with { new(api_key:, host:, timeout:) }
   end
 end
