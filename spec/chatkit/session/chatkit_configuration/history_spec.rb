@@ -10,330 +10,278 @@ RSpec.describe ChatKit::Session::ChatKitConfiguration::History do
       end
     end
 
-    context "when all arguments are provided" do
-      it "initializes with the provided values" do
-        instance = described_class.new(
-          enabled: false,
-          recent_threads: 50
-        )
-
-        expect(instance.enabled).to be(false)
-        expect(instance.recent_threads).to eq(50)
+    context "when enabled is provided" do
+      it "initializes with true value" do
+        instance = described_class.new(enabled: true)
+        expect(instance.enabled).to be(true)
       end
-    end
 
-    context "when partial arguments are provided" do
-      it "uses defaults for missing arguments" do
+      it "initializes with false value" do
         instance = described_class.new(enabled: false)
         expect(instance.enabled).to be(false)
-        expect(instance.recent_threads).to be_nil
       end
 
-      it "accepts recent_threads without enabled" do
-        instance = described_class.new(recent_threads: 25)
-        expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
-        expect(instance.recent_threads).to eq(25)
+      it "accepts nil value" do
+        instance = described_class.new(enabled: nil)
+        expect(instance.enabled).to be_nil
       end
     end
 
-    context "when nil values are provided" do
-      it "accepts nil values" do
-        instance = described_class.new(
-          enabled: nil,
-          recent_threads: nil
-        )
+    context "when recent_threads is provided" do
+      it "initializes with custom value" do
+        instance = described_class.new(recent_threads: 50)
+        expect(instance.recent_threads).to eq(50)
+      end
 
-        expect(instance.enabled).to be_nil
+      it "accepts zero value" do
+        instance = described_class.new(recent_threads: 0)
+        expect(instance.recent_threads).to eq(0)
+      end
+
+      it "accepts nil value" do
+        instance = described_class.new(recent_threads: nil)
         expect(instance.recent_threads).to be_nil
+      end
+
+      it "accepts large values" do
+        instance = described_class.new(recent_threads: 1000)
+        expect(instance.recent_threads).to eq(1000)
+      end
+    end
+
+    context "when both parameters are provided" do
+      it "initializes with all custom values" do
+        instance = described_class.new(enabled: false, recent_threads: 25)
+        expect(instance.enabled).to be(false)
+        expect(instance.recent_threads).to eq(25)
       end
     end
   end
 
   describe ".build" do
     context "when no arguments are provided" do
-      it "creates an instance with nil values" do
+      it "creates instance with nil values" do
         instance = described_class.build
         expect(instance.enabled).to be_nil
         expect(instance.recent_threads).to be_nil
       end
     end
 
-    context "when all arguments are provided" do
-      it "creates an instance with provided values" do
-        instance = described_class.build(
-          enabled: false,
-          recent_threads: 100
-        )
+    context "when enabled is provided" do
+      it "creates instance with true value" do
+        instance = described_class.build(enabled: true)
+        expect(instance.enabled).to be(true)
+      end
 
+      it "creates instance with false value" do
+        instance = described_class.build(enabled: false)
         expect(instance.enabled).to be(false)
-        expect(instance.recent_threads).to eq(100)
+      end
+
+      it "creates instance with nil value" do
+        instance = described_class.build(enabled: nil)
+        expect(instance.enabled).to be_nil
       end
     end
 
-    context "when partial arguments are provided" do
-      it "uses nil for missing arguments" do
-        instance = described_class.build(recent_threads: 75)
-        expect(instance.enabled).to be_nil
+    context "when recent_threads is provided" do
+      it "creates instance with custom value" do
+        instance = described_class.build(recent_threads: 100)
+        expect(instance.recent_threads).to eq(100)
+      end
+
+      it "creates instance with nil value" do
+        instance = described_class.build(recent_threads: nil)
+        expect(instance.recent_threads).to be_nil
+      end
+
+      it "creates instance with zero value" do
+        instance = described_class.build(recent_threads: 0)
+        expect(instance.recent_threads).to eq(0)
+      end
+    end
+
+    context "when both parameters are provided" do
+      it "creates instance with all custom values" do
+        instance = described_class.build(enabled: true, recent_threads: 75)
+        expect(instance.enabled).to be(true)
         expect(instance.recent_threads).to eq(75)
       end
     end
 
-    context "when nil values are provided" do
-      it "accepts nil values" do
-        instance = described_class.build(
-          enabled: nil,
-          recent_threads: nil
-        )
-
-        expect(instance.enabled).to be_nil
-        expect(instance.recent_threads).to be_nil
-      end
+    it "returns an instance of History" do
+      instance = described_class.build
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe ".deserialize" do
-    context "when data contains all keys" do
-      it "creates an instance with all provided values" do
-        data = {
-          "enabled" => true,
-          "recent_threads" => 50,
-        }
-        instance = described_class.deserialize(data)
+    context "when data is nil" do
+      it "initializes with nil values for all attributes" do
+        instance = described_class.deserialize(nil)
+        expect(instance.enabled).to be_nil
+        expect(instance.recent_threads).to be_nil
+      end
 
+      it "returns an instance of History" do
+        instance = described_class.deserialize(nil)
+        expect(instance).to be_a(described_class)
+      end
+    end
+
+    context "when data is an empty hash" do
+      it "initializes with nil values for all attributes" do
+        instance = described_class.deserialize({})
+        expect(instance.enabled).to be_nil
+        expect(instance.recent_threads).to be_nil
+      end
+    end
+
+    context "when data contains enabled key" do
+      it "deserializes with true value" do
+        data = { "enabled" => true }
+        instance = described_class.deserialize(data)
         expect(instance.enabled).to be(true)
+      end
+
+      it "deserializes with false value" do
+        data = { "enabled" => false }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to be(false)
+      end
+
+      it "deserializes with nil value" do
+        data = { "enabled" => nil }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to be_nil
+      end
+    end
+
+    context "when data contains recent_threads key" do
+      it "deserializes with integer value" do
+        data = { "recent_threads" => 50 }
+        instance = described_class.deserialize(data)
         expect(instance.recent_threads).to eq(50)
       end
 
-      it "handles false and zero values correctly" do
-        data = {
-          "enabled" => false,
-          "recent_threads" => 0,
-        }
+      it "deserializes with nil value" do
+        data = { "recent_threads" => nil }
         instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(false)
-        expect(instance.recent_threads).to eq(0)
-      end
-
-      it "handles nil values in data" do
-        data = {
-          "enabled" => nil,
-          "recent_threads" => nil,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.recent_threads).to be_nil
-      end
-    end
-
-    context "when data contains partial keys" do
-      it "handles missing enabled key" do
-        data = { "recent_threads" => 25 }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.recent_threads).to eq(25)
-      end
-
-      it "handles missing recent_threads key" do
-        data = { "enabled" => true }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(true)
         expect(instance.recent_threads).to be_nil
       end
 
-      it "handles only enabled key with false value" do
-        data = { "enabled" => false }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(false)
-        expect(instance.recent_threads).to be_nil
-      end
-
-      it "handles only recent_threads key with zero value" do
+      it "deserializes with zero value" do
         data = { "recent_threads" => 0 }
         instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
         expect(instance.recent_threads).to eq(0)
       end
     end
 
-    context "when data does not contain relevant keys" do
-      it "creates an instance with all nil values for empty data" do
-        data = {}
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.recent_threads).to be_nil
-      end
-
-      it "ignores unknown keys in data" do
-        data = {
-          "unknown_key" => "value",
-          "another_key" => 123,
-          "random_field" => true,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.recent_threads).to be_nil
-      end
-
-      it "uses relevant keys and ignores unknown ones" do
+    context "when data contains all keys" do
+      it "deserializes all values correctly" do
         data = {
           "enabled" => true,
-          "recent_threads" => 30,
-          "unknown_field" => "ignored",
-          "extra_data" => { "nested" => "value" },
+          "recent_threads" => 100,
         }
         instance = described_class.deserialize(data)
-
         expect(instance.enabled).to be(true)
-        expect(instance.recent_threads).to eq(30)
+        expect(instance.recent_threads).to eq(100)
       end
     end
 
-    context "with edge cases" do
-      it "handles nil data" do
-        instance = described_class.deserialize(nil)
-
-        expect(instance.enabled).to be_nil
-        expect(instance.recent_threads).to be_nil
-      end
-
-      it "handles data with string keys" do
+    context "when data contains extra keys" do
+      it "extracts only relevant keys using dig" do
         data = {
-          "enabled" => false,
-          "recent_threads" => 15,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(false)
-        expect(instance.recent_threads).to eq(15)
-      end
-
-      it "returns a new instance each time" do
-        data = {
-          "enabled" => true,
-          "recent_threads" => 40,
-        }
-        instance1 = described_class.deserialize(data)
-        instance2 = described_class.deserialize(data)
-
-        expect(instance1).not_to be(instance2)
-        expect(instance1.enabled).to eq(instance2.enabled)
-        expect(instance1.recent_threads).to eq(instance2.recent_threads)
-      end
-
-      it "handles large numeric values for recent_threads" do
-        data = {
-          "enabled" => true,
-          "recent_threads" => 999_999,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(true)
-        expect(instance.recent_threads).to eq(999_999)
-      end
-
-      it "handles negative values for recent_threads" do
-        data = {
-          "enabled" => true,
-          "recent_threads" => -5,
-        }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(true)
-        expect(instance.recent_threads).to eq(-5)
-      end
-    end
-
-    context "round-trip serialization" do
-      it "can deserialize what was serialized" do
-        original = described_class.new(
-          enabled: true,
-          recent_threads: 35
-        )
-        serialized = original.serialize
-        # Convert keys to strings to simulate JSON parsing
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(original.enabled)
-        expect(deserialized.recent_threads).to eq(original.recent_threads)
-      end
-
-      it "handles nil values in round-trip" do
-        original = described_class.new(
-          enabled: nil,
-          recent_threads: nil
-        )
-        serialized = original.serialize
-        # Since serialize uses compact, nil values are removed
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to be_nil
-        expect(deserialized.recent_threads).to be_nil
-      end
-
-      it "handles partial nil values in round-trip" do
-        original = described_class.new(
-          enabled: false,
-          recent_threads: nil
-        )
-        serialized = original.serialize
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(original.enabled)
-        expect(deserialized.recent_threads).to be_nil # Was nil, remains nil
-      end
-
-      it "handles default values in round-trip" do
-        original = described_class.new # Uses default enabled value
-        serialized = original.serialize
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
-        expect(deserialized.recent_threads).to be_nil # Default is nil
-      end
-
-      it "handles zero values in round-trip" do
-        original = described_class.new(
-          enabled: false,
-          recent_threads: 0
-        )
-        serialized = original.serialize
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(original.enabled)
-        expect(deserialized.recent_threads).to eq(original.recent_threads)
-      end
-
-      it "maintains data integrity through multiple round-trips" do
-        original_data = {
           "enabled" => false,
           "recent_threads" => 75,
+          "extra_key" => "ignored",
         }
-
-        # First round-trip
-        instance1 = described_class.deserialize(original_data)
-        serialized1 = instance1.serialize.transform_keys(&:to_s)
-
-        # Second round-trip
-        instance2 = described_class.deserialize(serialized1)
-        serialized2 = instance2.serialize.transform_keys(&:to_s)
-
-        expect(serialized1).to eq(serialized2)
-        expect(instance2.enabled).to eq(original_data["enabled"])
-        expect(instance2.recent_threads).to eq(original_data["recent_threads"])
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to be(false)
+        expect(instance.recent_threads).to eq(75)
       end
+    end
+
+    it "returns an instance of History" do
+      instance = described_class.deserialize({ "enabled" => true })
+      expect(instance).to be_a(described_class)
+    end
+  end
+
+  describe "#serialize" do
+    context "when all attributes have values" do
+      it "serializes to hash with all keys" do
+        instance = described_class.new(enabled: true, recent_threads: 50)
+        result = instance.serialize
+        expect(result).to eq({
+          enabled: true,
+          recent_threads: 50,
+        })
+      end
+    end
+
+    context "when enabled is true" do
+      it "serializes enabled key" do
+        instance = described_class.new(enabled: true, recent_threads: 25)
+        result = instance.serialize
+        expect(result[:enabled]).to be(true)
+      end
+    end
+
+    context "when enabled is false" do
+      it "serializes enabled key" do
+        instance = described_class.new(enabled: false, recent_threads: 25)
+        result = instance.serialize
+        expect(result[:enabled]).to be(false)
+      end
+    end
+
+    context "when enabled is nil" do
+      it "omits enabled from serialized hash (compacts nil values)" do
+        instance = described_class.new(enabled: nil, recent_threads: 25)
+        result = instance.serialize
+        expect(result).not_to have_key(:enabled)
+      end
+    end
+
+    context "when recent_threads is nil" do
+      it "omits recent_threads from serialized hash" do
+        instance = described_class.new(enabled: true, recent_threads: nil)
+        result = instance.serialize
+        expect(result).not_to have_key(:recent_threads)
+      end
+    end
+
+    context "when recent_threads is zero" do
+      it "includes recent_threads in serialized hash" do
+        instance = described_class.new(enabled: true, recent_threads: 0)
+        result = instance.serialize
+        expect(result[:recent_threads]).to eq(0)
+      end
+    end
+
+    context "when all attributes are nil" do
+      it "serializes to empty hash" do
+        instance = described_class.new(enabled: nil, recent_threads: nil)
+        result = instance.serialize
+        expect(result).to eq({})
+      end
+    end
+
+    context "when using default values" do
+      it "serializes with default enabled value and nil recent_threads" do
+        instance = described_class.new
+        result = instance.serialize
+        expect(result).to eq({
+          enabled: ChatKit::Session::Defaults::ENABLED,
+        })
+      end
+    end
+
+    it "returns a hash" do
+      instance = described_class.new(enabled: true, recent_threads: 50)
+      result = instance.serialize
+      expect(result).to be_a(Hash)
     end
   end
 
@@ -341,141 +289,299 @@ RSpec.describe ChatKit::Session::ChatKitConfiguration::History do
     let(:instance) { described_class.new }
 
     describe "#enabled" do
-      it "is readable and writable" do
-        instance.enabled = false
-        expect(instance.enabled).to be(false)
+      it "allows reading the enabled value" do
+        expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
       end
 
-      it "accepts boolean values" do
+      it "allows writing true value" do
         instance.enabled = true
         expect(instance.enabled).to be(true)
+      end
 
+      it "allows writing false value" do
         instance.enabled = false
         expect(instance.enabled).to be(false)
       end
 
-      it "accepts nil value" do
+      it "allows writing nil value" do
         instance.enabled = nil
         expect(instance.enabled).to be_nil
       end
     end
 
     describe "#recent_threads" do
-      it "is readable and writable" do
-        instance.recent_threads = 42
-        expect(instance.recent_threads).to eq(42)
+      it "allows reading the recent_threads value" do
+        expect(instance.recent_threads).to be_nil
       end
 
-      it "accepts integer values" do
+      it "allows writing integer value" do
+        instance.recent_threads = 100
+        expect(instance.recent_threads).to eq(100)
+      end
+
+      it "allows writing nil value" do
+        instance.recent_threads = nil
+        expect(instance.recent_threads).to be_nil
+      end
+
+      it "allows writing zero value" do
         instance.recent_threads = 0
         expect(instance.recent_threads).to eq(0)
+      end
+    end
+  end
 
-        instance.recent_threads = 999
-        expect(instance.recent_threads).to eq(999)
+  describe "integration with FactoryBot" do
+    context "using default factory" do
+      it "creates valid instance" do
+        instance = build(:history)
+        expect(instance).to be_a(described_class)
+        expect(instance.enabled).to be(true)
+        expect(instance.recent_threads).to eq(50)
+      end
+    end
+
+    context "using :enabled trait" do
+      it "creates instance with enabled true" do
+        instance = build(:history, :enabled)
+        expect(instance.enabled).to be(true)
+      end
+    end
+
+    context "using :disabled trait" do
+      it "creates instance with enabled false" do
+        instance = build(:history, :disabled)
+        expect(instance.enabled).to be(false)
+      end
+    end
+
+    context "using :nil_enabled trait" do
+      it "creates instance with nil enabled" do
+        instance = build(:history, :nil_enabled)
+        expect(instance.enabled).to be_nil
+      end
+    end
+
+    context "using :default_enabled trait" do
+      it "creates instance with default enabled value" do
+        instance = build(:history, :default_enabled)
+        expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
+      end
+    end
+
+    context "using :no_thread_limit trait" do
+      it "creates instance with nil recent_threads" do
+        instance = build(:history, :no_thread_limit)
+        expect(instance.recent_threads).to be_nil
+      end
+    end
+
+    context "using :limited_threads trait" do
+      it "creates instance with limited recent_threads" do
+        instance = build(:history, :limited_threads)
+        expect(instance.recent_threads).to eq(10)
+      end
+    end
+
+    context "using :unlimited_threads trait" do
+      it "creates instance with large recent_threads value" do
+        instance = build(:history, :unlimited_threads)
+        expect(instance.recent_threads).to eq(1000)
+      end
+    end
+
+    context "using :default_recent_threads trait" do
+      it "creates instance with nil recent_threads" do
+        instance = build(:history, :default_recent_threads)
+        expect(instance.recent_threads).to be_nil
+      end
+    end
+
+    context "overriding values" do
+      it "allows custom enabled value" do
+        instance = build(:history, enabled: false)
+        expect(instance.enabled).to be(false)
       end
 
-      it "accepts nil value" do
-        instance.recent_threads = nil
+      it "allows custom recent_threads value" do
+        instance = build(:history, recent_threads: 200)
+        expect(instance.recent_threads).to eq(200)
+      end
+    end
+
+    context "combining traits" do
+      it "allows combining :disabled with :limited_threads" do
+        instance = build(:history, :disabled, :limited_threads)
+        expect(instance.enabled).to be(false)
+        expect(instance.recent_threads).to eq(10)
+      end
+
+      it "allows combining :enabled with :no_thread_limit" do
+        instance = build(:history, :enabled, :no_thread_limit)
+        expect(instance.enabled).to be(true)
         expect(instance.recent_threads).to be_nil
       end
     end
   end
 
-  describe "#serialize" do
-    context "when all values are present" do
-      it "returns a hash with all keys" do
-        instance = described_class.new(
-          enabled: true,
-          recent_threads: 30
-        )
-        result = instance.serialize
+  describe "round-trip serialization" do
+    it "maintains data integrity when serializing and deserializing" do
+      original = described_class.new(enabled: true, recent_threads: 50)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.recent_threads).to eq(original.recent_threads)
+    end
 
-        expect(result).to eq({
-          enabled: true,
-          recent_threads: 30,
-        })
+    it "maintains data integrity with false enabled" do
+      original = described_class.new(enabled: false, recent_threads: 100)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.recent_threads).to eq(original.recent_threads)
+    end
+
+    it "handles nil values in round-trip" do
+      original = described_class.new(enabled: nil, recent_threads: nil)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.recent_threads).to eq(original.recent_threads)
+    end
+
+    it "handles partial nil values in round-trip" do
+      original = described_class.new(enabled: true, recent_threads: nil)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.recent_threads).to eq(original.recent_threads)
+    end
+
+    it "handles zero recent_threads in round-trip" do
+      original = described_class.new(enabled: true, recent_threads: 0)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+      expect(deserialized.recent_threads).to eq(original.recent_threads)
+    end
+  end
+
+  describe "edge cases" do
+    context "when modifying attributes after initialization" do
+      it "allows toggling enabled state" do
+        instance = described_class.new(enabled: true, recent_threads: 50)
+        expect(instance.enabled).to be(true)
+
+        instance.enabled = false
+        expect(instance.enabled).to be(false)
+
+        instance.enabled = true
+        expect(instance.enabled).to be(true)
+      end
+
+      it "allows changing recent_threads value" do
+        instance = described_class.new(enabled: true, recent_threads: 50)
+        expect(instance.recent_threads).to eq(50)
+
+        instance.recent_threads = 100
+        expect(instance.recent_threads).to eq(100)
+
+        instance.recent_threads = nil
+        expect(instance.recent_threads).to be_nil
       end
     end
 
-    context "when enabled is false" do
-      it "returns a hash with enabled false" do
-        instance = described_class.new(
-          enabled: false,
-          recent_threads: 15
-        )
-        result = instance.serialize
-
-        expect(result).to eq({
-          enabled: false,
-          recent_threads: 15,
-        })
+    context "when serializing multiple times" do
+      it "produces consistent results" do
+        instance = described_class.new(enabled: true, recent_threads: 75)
+        first_serialization = instance.serialize
+        second_serialization = instance.serialize
+        expect(first_serialization).to eq(second_serialization)
       end
     end
 
-    context "when some values are nil" do
-      it "returns a hash without nil values due to compact" do
-        instance = described_class.new(
-          enabled: nil,
-          recent_threads: 20
-        )
-        result = instance.serialize
-
-        expect(result).to eq({ recent_threads: 20 })
+    context "when deserializing with unexpected data types" do
+      it "handles string values for enabled" do
+        data = { "enabled" => "true" }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to eq("true")
       end
 
-      it "excludes nil recent_threads" do
-        instance = described_class.new(
-          enabled: true,
-          recent_threads: nil
-        )
-        result = instance.serialize
+      it "handles string values for recent_threads" do
+        data = { "recent_threads" => "50" }
+        instance = described_class.deserialize(data)
+        expect(instance.recent_threads).to eq("50")
+      end
 
-        expect(result).to eq({ enabled: true })
+      it "handles float values for recent_threads" do
+        data = { "recent_threads" => 50.5 }
+        instance = described_class.deserialize(data)
+        expect(instance.recent_threads).to eq(50.5)
       end
     end
 
-    context "when all values are nil" do
-      it "returns an empty hash due to compact" do
-        instance = described_class.new(
-          enabled: nil,
-          recent_threads: nil
-        )
-        result = instance.serialize
+    context "when working with boundary values" do
+      it "handles very large recent_threads values" do
+        instance = described_class.new(recent_threads: 999_999)
+        expect(instance.recent_threads).to eq(999_999)
+        serialized = instance.serialize
+        expect(serialized[:recent_threads]).to eq(999_999)
+      end
 
-        expect(result).to eq({})
+      it "handles zero recent_threads" do
+        instance = described_class.new(recent_threads: 0)
+        expect(instance.recent_threads).to eq(0)
+        serialized = instance.serialize
+        expect(serialized[:recent_threads]).to eq(0)
+      end
+
+      it "handles negative recent_threads" do
+        instance = described_class.new(recent_threads: -1)
+        expect(instance.recent_threads).to eq(-1)
+        serialized = instance.serialize
+        expect(serialized[:recent_threads]).to eq(-1)
       end
     end
 
-    context "when using default values" do
-      it "returns a hash with default enabled value" do
+    context "when modifying after serialization" do
+      it "subsequent serializations reflect modifications" do
+        instance = described_class.new(enabled: true, recent_threads: 50)
+        first_result = instance.serialize
+        expect(first_result[:recent_threads]).to eq(50)
+
+        instance.recent_threads = 100
+        second_result = instance.serialize
+        expect(second_result[:recent_threads]).to eq(100)
+      end
+    end
+  end
+
+  describe "constants and defaults" do
+    it "uses Session::Create::Defaults::ENABLED as enabled default" do
+      instance = described_class.new
+      expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
+    end
+
+    it "uses nil as recent_threads default" do
+      instance = described_class.new
+      expect(instance.recent_threads).to be_nil
+    end
+
+    it "Session::Create::Defaults::ENABLED is true" do
+      expect(ChatKit::Session::Defaults::ENABLED).to be(true)
+    end
+  end
+
+  describe "documentation compliance" do
+    context "according to the class documentation" do
+      it "history is enabled by default" do
         instance = described_class.new
-        result = instance.serialize
-
-        expect(result).to eq({
-          enabled: ChatKit::Session::Defaults::ENABLED,
-        })
+        expect(instance.enabled).to be(true)
       end
 
-      it "excludes nil recent_threads from default initialization" do
+      it "recent_threads has no limit (nil) by default" do
         instance = described_class.new
-        result = instance.serialize
-
-        expect(result).not_to have_key(:recent_threads)
-      end
-    end
-
-    context "when recent_threads is zero" do
-      it "includes zero value in the result" do
-        instance = described_class.new(
-          enabled: true,
-          recent_threads: 0
-        )
-        result = instance.serialize
-
-        expect(result).to eq({
-          enabled: true,
-          recent_threads: 0,
-        })
+        expect(instance.recent_threads).to be_nil
       end
     end
   end

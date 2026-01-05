@@ -1,307 +1,481 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-
 RSpec.describe ChatKit::Session::ExpiresAfter do
   describe ".new" do
-    context "when both required parameters are provided" do
+    context "when both required arguments are provided" do
       it "initializes with anchor and seconds" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-
-        expect(expires_after.anchor).to eq("creation")
-        expect(expires_after.seconds).to eq(600)
-      end
-    end
-
-    context "when different anchor types are provided" do
-      it "accepts creation anchor" do
-        expires_after = described_class.new(anchor: "creation", seconds: 300)
-
-        expect(expires_after.anchor).to eq("creation")
-        expect(expires_after.seconds).to eq(300)
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        expect(instance.anchor).to eq("creation")
+        expect(instance.seconds).to eq(600)
       end
 
       it "accepts last_activity anchor" do
-        expires_after = described_class.new(anchor: "last_activity", seconds: 1800)
-
-        expect(expires_after.anchor).to eq("last_activity")
-        expect(expires_after.seconds).to eq(1800)
+        instance = described_class.new(anchor: "last_activity", seconds: 3600)
+        expect(instance.anchor).to eq("last_activity")
+        expect(instance.seconds).to eq(3600)
       end
 
       it "accepts custom anchor values" do
-        expires_after = described_class.new(anchor: "custom_timestamp", seconds: 7200)
-
-        expect(expires_after.anchor).to eq("custom_timestamp")
-        expect(expires_after.seconds).to eq(7200)
-      end
-    end
-
-    context "when different time durations are provided" do
-      it "accepts short duration (1 minute)" do
-        expires_after = described_class.new(anchor: "creation", seconds: 60)
-
-        expect(expires_after.seconds).to eq(60)
+        instance = described_class.new(anchor: "custom_timestamp", seconds: 1200)
+        expect(instance.anchor).to eq("custom_timestamp")
+        expect(instance.seconds).to eq(1200)
       end
 
-      it "accepts standard duration (10 minutes)" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-
-        expect(expires_after.seconds).to eq(600)
+      it "accepts various second values" do
+        instance = described_class.new(anchor: "creation", seconds: 86_400)
+        expect(instance.seconds).to eq(86_400)
       end
 
-      it "accepts long duration (1 hour)" do
-        expires_after = described_class.new(anchor: "creation", seconds: 3600)
-
-        expect(expires_after.seconds).to eq(3600)
-      end
-
-      it "accepts very long duration (24 hours)" do
-        expires_after = described_class.new(anchor: "creation", seconds: 86_400)
-
-        expect(expires_after.seconds).to eq(86_400)
-      end
-    end
-
-    context "when zero or negative values are provided" do
       it "accepts zero seconds" do
-        expires_after = described_class.new(anchor: "creation", seconds: 0)
-
-        expect(expires_after.seconds).to eq(0)
+        instance = described_class.new(anchor: "creation", seconds: 0)
+        expect(instance.seconds).to eq(0)
       end
 
-      it "accepts negative seconds" do
-        expires_after = described_class.new(anchor: "creation", seconds: -100)
+      it "accepts large second values" do
+        instance = described_class.new(anchor: "creation", seconds: 999_999)
+        expect(instance.seconds).to eq(999_999)
+      end
+    end
 
-        expect(expires_after.seconds).to eq(-100)
+    context "when arguments are missing" do
+      it "raises ArgumentError when anchor is missing" do
+        expect { described_class.new(seconds: 600) }.to raise_error(ArgumentError)
+      end
+
+      it "raises ArgumentError when seconds is missing" do
+        expect { described_class.new(anchor: "creation") }.to raise_error(ArgumentError)
+      end
+
+      it "raises ArgumentError when both are missing" do
+        expect { described_class.new }.to raise_error(ArgumentError)
+      end
+    end
+
+    context "when nil values are provided" do
+      it "accepts nil anchor" do
+        instance = described_class.new(anchor: nil, seconds: 600)
+        expect(instance.anchor).to be_nil
+      end
+
+      it "accepts nil seconds" do
+        instance = described_class.new(anchor: "creation", seconds: nil)
+        expect(instance.seconds).to be_nil
+      end
+
+      it "accepts both nil values" do
+        instance = described_class.new(anchor: nil, seconds: nil)
+        expect(instance.anchor).to be_nil
+        expect(instance.seconds).to be_nil
       end
     end
   end
 
   describe ".build" do
-    context "when both parameters are provided" do
-      it "creates instance with provided values" do
-        expires_after = described_class.build(anchor: "last_activity", seconds: 1200)
+    context "when both required arguments are provided" do
+      it "builds with anchor and seconds" do
+        instance = described_class.build(anchor: "creation", seconds: 600)
+        expect(instance.anchor).to eq("creation")
+        expect(instance.seconds).to eq(600)
+      end
 
-        expect(expires_after.anchor).to eq("last_activity")
-        expect(expires_after.seconds).to eq(1200)
+      it "builds with last_activity anchor" do
+        instance = described_class.build(anchor: "last_activity", seconds: 1800)
+        expect(instance.anchor).to eq("last_activity")
+        expect(instance.seconds).to eq(1800)
+      end
+
+      it "builds with custom values" do
+        instance = described_class.build(anchor: "custom", seconds: 7200)
+        expect(instance.anchor).to eq("custom")
+        expect(instance.seconds).to eq(7200)
       end
     end
 
-    context "when comparing with .new method" do
-      it "produces identical results" do
-        params = { anchor: "creation", seconds: 900 }
-
-        expires_new = described_class.new(**params)
-        expires_build = described_class.build(**params)
-
-        expect(expires_new.anchor).to eq(expires_build.anchor)
-        expect(expires_new.seconds).to eq(expires_build.seconds)
-        expect(expires_new.serialize).to eq(expires_build.serialize)
-      end
-    end
-  end
-
-  describe "attribute accessors" do
-    let(:expires_after) { described_class.new(anchor: "creation", seconds: 600) }
-
-    describe "#anchor" do
-      it "is readable and writable" do
-        expect(expires_after.anchor).to eq("creation")
-        expires_after.anchor = "last_activity"
-        expect(expires_after.anchor).to eq("last_activity")
+    context "when arguments are missing" do
+      it "raises ArgumentError when anchor is missing" do
+        expect { described_class.build(seconds: 600) }.to raise_error(ArgumentError)
       end
 
-      it "accepts string values" do
-        expires_after.anchor = "custom_anchor"
-        expect(expires_after.anchor).to eq("custom_anchor")
+      it "raises ArgumentError when seconds is missing" do
+        expect { described_class.build(anchor: "creation") }.to raise_error(ArgumentError)
       end
 
-      it "accepts nil value" do
-        expires_after.anchor = nil
-        expect(expires_after.anchor).to be_nil
+      it "raises ArgumentError when both are missing" do
+        expect { described_class.build }.to raise_error(ArgumentError)
       end
     end
 
-    describe "#seconds" do
-      it "is readable and writable" do
-        expect(expires_after.seconds).to eq(600)
-        expires_after.seconds = 1800
-        expect(expires_after.seconds).to eq(1800)
-      end
-
-      it "accepts integer values" do
-        expires_after.seconds = 42
-        expect(expires_after.seconds).to eq(42)
-      end
-
-      it "accepts zero value" do
-        expires_after.seconds = 0
-        expect(expires_after.seconds).to eq(0)
-      end
-
-      it "accepts negative values" do
-        expires_after.seconds = -500
-        expect(expires_after.seconds).to eq(-500)
-      end
-
-      it "accepts nil value" do
-        expires_after.seconds = nil
-        expect(expires_after.seconds).to be_nil
-      end
+    it "returns an instance of ExpiresAfter" do
+      instance = described_class.build(anchor: "creation", seconds: 600)
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe "#serialize" do
     context "when both attributes have values" do
-      let(:expires_after) { described_class.new(anchor: "creation", seconds: 1200) }
+      it "serializes to hash with both keys" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        result = instance.serialize
+        expect(result).to eq({ anchor: "creation", seconds: 600 })
+      end
 
-      it "returns hash with both attributes" do
-        result = expires_after.serialize
+      it "serializes with last_activity anchor" do
+        instance = described_class.new(anchor: "last_activity", seconds: 3600)
+        result = instance.serialize
+        expect(result).to eq({ anchor: "last_activity", seconds: 3600 })
+      end
 
-        expect(result).to eq({
-          anchor: "creation",
-          seconds: 1200,
-        })
+      it "serializes with large seconds value" do
+        instance = described_class.new(anchor: "creation", seconds: 86_400)
+        result = instance.serialize
+        expect(result).to eq({ anchor: "creation", seconds: 86_400 })
       end
     end
 
-    context "when attributes have different combinations" do
-      it "includes both anchor and seconds when set" do
-        expires_after = described_class.new(anchor: "last_activity", seconds: 300)
-        result = expires_after.serialize
-
-        expect(result).to have_key(:anchor)
-        expect(result).to have_key(:seconds)
-        expect(result[:anchor]).to eq("last_activity")
-        expect(result[:seconds]).to eq(300)
-      end
-
-      it "includes zero seconds in serialization" do
-        expires_after = described_class.new(anchor: "creation", seconds: 0)
-        result = expires_after.serialize
-
-        expect(result[:seconds]).to eq(0)
-        expect(result).to have_key(:seconds)
-      end
-
-      it "includes negative seconds in serialization" do
-        expires_after = described_class.new(anchor: "creation", seconds: -100)
-        result = expires_after.serialize
-
-        expect(result[:seconds]).to eq(-100)
-      end
-    end
-
-    context "when attributes are set to nil" do
-      it "excludes nil anchor due to compact" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-        expires_after.anchor = nil
-        result = expires_after.serialize
-
+    context "when attributes have nil values" do
+      it "omits nil anchor from serialized hash" do
+        instance = described_class.new(anchor: nil, seconds: 600)
+        result = instance.serialize
+        expect(result).to eq({ seconds: 600 })
         expect(result).not_to have_key(:anchor)
-        expect(result[:seconds]).to eq(600)
       end
 
-      it "excludes nil seconds due to compact" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-        expires_after.seconds = nil
-        result = expires_after.serialize
-
+      it "omits nil seconds from serialized hash" do
+        instance = described_class.new(anchor: "creation", seconds: nil)
+        result = instance.serialize
+        expect(result).to eq({ anchor: "creation" })
         expect(result).not_to have_key(:seconds)
-        expect(result[:anchor]).to eq("creation")
       end
 
-      it "returns empty hash when both are nil" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-        expires_after.anchor = nil
-        expires_after.seconds = nil
-        result = expires_after.serialize
-
+      it "serializes to empty hash when both are nil" do
+        instance = described_class.new(anchor: nil, seconds: nil)
+        result = instance.serialize
         expect(result).to eq({})
+      end
+    end
+
+    context "when attributes have edge case values" do
+      it "includes zero seconds in serialized hash" do
+        instance = described_class.new(anchor: "creation", seconds: 0)
+        result = instance.serialize
+        expect(result[:seconds]).to eq(0)
+      end
+
+      it "includes empty string anchor in serialized hash" do
+        instance = described_class.new(anchor: "", seconds: 600)
+        result = instance.serialize
+        expect(result[:anchor]).to eq("")
+      end
+    end
+
+    it "returns a hash" do
+      instance = described_class.new(anchor: "creation", seconds: 600)
+      result = instance.serialize
+      expect(result).to be_a(Hash)
+    end
+  end
+
+  describe "attribute accessors" do
+    let(:instance) { described_class.new(anchor: "creation", seconds: 600) }
+
+    describe "#anchor" do
+      it "allows reading the anchor value" do
+        expect(instance.anchor).to eq("creation")
+      end
+
+      it "allows writing string value" do
+        instance.anchor = "last_activity"
+        expect(instance.anchor).to eq("last_activity")
+      end
+
+      it "allows writing nil value" do
+        instance.anchor = nil
+        expect(instance.anchor).to be_nil
+      end
+
+      it "allows writing custom values" do
+        instance.anchor = "custom_timestamp"
+        expect(instance.anchor).to eq("custom_timestamp")
+      end
+    end
+
+    describe "#seconds" do
+      it "allows reading the seconds value" do
+        expect(instance.seconds).to eq(600)
+      end
+
+      it "allows writing integer value" do
+        instance.seconds = 3600
+        expect(instance.seconds).to eq(3600)
+      end
+
+      it "allows writing nil value" do
+        instance.seconds = nil
+        expect(instance.seconds).to be_nil
+      end
+
+      it "allows writing zero value" do
+        instance.seconds = 0
+        expect(instance.seconds).to eq(0)
+      end
+
+      it "allows writing large values" do
+        instance.seconds = 999_999
+        expect(instance.seconds).to eq(999_999)
       end
     end
   end
 
-  describe "edge cases and validation" do
-    context "with boundary values" do
-      it "handles empty string anchor" do
-        expires_after = described_class.new(anchor: "", seconds: 600)
-        expect(expires_after.anchor).to eq("")
-      end
-
-      it "handles very long anchor string" do
-        long_anchor = "anchor_#{'x' * 1000}"
-        expires_after = described_class.new(anchor: long_anchor, seconds: 600)
-        expect(expires_after.anchor).to eq(long_anchor)
-      end
-
-      it "handles maximum integer seconds" do
-        max_seconds = (2**31) - 1 # Maximum 32-bit signed integer
-        expires_after = described_class.new(anchor: "creation", seconds: max_seconds)
-        expect(expires_after.seconds).to eq(max_seconds)
-      end
-
-      it "handles minimum integer seconds" do
-        min_seconds = -2**31 # Minimum 32-bit signed integer
-        expires_after = described_class.new(anchor: "creation", seconds: min_seconds)
-        expect(expires_after.seconds).to eq(min_seconds)
+  describe "integration with FactoryBot" do
+    context "using default factory" do
+      it "creates valid instance" do
+        instance = build(:expires_after)
+        expect(instance).to be_a(described_class)
+        expect(instance.anchor).to eq("creation")
+        expect(instance.seconds).to eq(600)
       end
     end
 
-    context "when checking serialization consistency" do
-      it "maintains consistent serialization across multiple calls" do
-        expires_after = described_class.new(anchor: "creation", seconds: 1800)
-
-        first_serialize = expires_after.serialize
-        second_serialize = expires_after.serialize
-
-        expect(first_serialize).to eq(second_serialize)
-      end
-
-      it "reflects changes in subsequent serializations" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-
-        original_serialize = expires_after.serialize
-        expires_after.seconds = 1200
-        updated_serialize = expires_after.serialize
-
-        expect(original_serialize[:seconds]).to eq(600)
-        expect(updated_serialize[:seconds]).to eq(1200)
-      end
-
-      it "reflects anchor changes in serializations" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-
-        original_serialize = expires_after.serialize
-        expires_after.anchor = "last_activity"
-        updated_serialize = expires_after.serialize
-
-        expect(original_serialize[:anchor]).to eq("creation")
-        expect(updated_serialize[:anchor]).to eq("last_activity")
+    context "using :short_expiry trait" do
+      it "creates instance with short expiry" do
+        instance = build(:expires_after, :short_expiry)
+        expect(instance.seconds).to eq(60)
       end
     end
 
-    context "with common expiration scenarios" do
-      it "handles default 10-minute expiration" do
-        expires_after = described_class.new(anchor: "creation", seconds: 600)
-        result = expires_after.serialize
+    context "using :long_expiry trait" do
+      it "creates instance with long expiry" do
+        instance = build(:expires_after, :long_expiry)
+        expect(instance.seconds).to eq(3600)
+      end
+    end
 
-        expect(result).to eq({ anchor: "creation", seconds: 600 })
+    context "using :ten_minutes trait" do
+      it "creates instance with ten minutes expiry" do
+        instance = build(:expires_after, :ten_minutes)
+        expect(instance.seconds).to eq(600)
+      end
+    end
+
+    context "using :one_hour trait" do
+      it "creates instance with one hour expiry" do
+        instance = build(:expires_after, :one_hour)
+        expect(instance.seconds).to eq(3600)
+      end
+    end
+
+    context "using :one_day trait" do
+      it "creates instance with one day expiry" do
+        instance = build(:expires_after, :one_day)
+        expect(instance.seconds).to eq(86_400)
+      end
+    end
+
+    context "using :last_activity_anchor trait" do
+      it "creates instance with last_activity anchor" do
+        instance = build(:expires_after, :last_activity_anchor)
+        expect(instance.anchor).to eq("last_activity")
+      end
+    end
+
+    context "using :creation_anchor trait" do
+      it "creates instance with creation anchor" do
+        instance = build(:expires_after, :creation_anchor)
+        expect(instance.anchor).to eq("creation")
+      end
+    end
+
+    context "using :custom_anchor trait" do
+      it "creates instance with custom anchor" do
+        instance = build(:expires_after, :custom_anchor)
+        expect(instance.anchor).to eq("custom_timestamp")
+      end
+    end
+
+    context "overriding values" do
+      it "allows custom anchor value" do
+        instance = build(:expires_after, anchor: "custom")
+        expect(instance.anchor).to eq("custom")
       end
 
-      it "handles session timeout scenarios" do
-        expires_after = described_class.new(anchor: "last_activity", seconds: 1800)
-        result = expires_after.serialize
-
-        expect(result[:anchor]).to eq("last_activity")
-        expect(result[:seconds]).to eq(1800)
+      it "allows custom seconds value" do
+        instance = build(:expires_after, seconds: 1200)
+        expect(instance.seconds).to eq(1200)
       end
 
-      it "handles immediate expiration" do
-        expires_after = described_class.new(anchor: "creation", seconds: 0)
-        result = expires_after.serialize
+      it "allows overriding both values" do
+        instance = build(:expires_after, anchor: "last_activity", seconds: 7200)
+        expect(instance.anchor).to eq("last_activity")
+        expect(instance.seconds).to eq(7200)
+      end
+    end
 
-        expect(result[:seconds]).to eq(0)
+    context "combining traits" do
+      it "allows combining anchor and expiry traits" do
+        instance = build(:expires_after, :last_activity_anchor, :one_hour)
+        expect(instance.anchor).to eq("last_activity")
+        expect(instance.seconds).to eq(3600)
+      end
+
+      it "allows combining creation_anchor with one_day" do
+        instance = build(:expires_after, :creation_anchor, :one_day)
+        expect(instance.anchor).to eq("creation")
+        expect(instance.seconds).to eq(86_400)
+      end
+    end
+  end
+
+  describe "edge cases" do
+    context "when modifying attributes after initialization" do
+      it "allows changing anchor" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        expect(instance.anchor).to eq("creation")
+
+        instance.anchor = "last_activity"
+        expect(instance.anchor).to eq("last_activity")
+      end
+
+      it "allows changing seconds" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        expect(instance.seconds).to eq(600)
+
+        instance.seconds = 3600
+        expect(instance.seconds).to eq(3600)
+      end
+
+      it "allows changing both attributes" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+
+        instance.anchor = "custom"
+        instance.seconds = 1200
+
+        expect(instance.anchor).to eq("custom")
+        expect(instance.seconds).to eq(1200)
+      end
+    end
+
+    context "when serializing multiple times" do
+      it "produces consistent results" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        first_serialization = instance.serialize
+        second_serialization = instance.serialize
+        expect(first_serialization).to eq(second_serialization)
+      end
+    end
+
+    context "when working with unexpected data types" do
+      it "accepts string seconds value" do
+        instance = described_class.new(anchor: "creation", seconds: "600")
+        expect(instance.seconds).to eq("600")
+      end
+
+      it "accepts symbol anchor value" do
+        instance = described_class.new(anchor: :creation, seconds: 600)
+        expect(instance.anchor).to eq(:creation)
+      end
+
+      it "accepts float seconds value" do
+        instance = described_class.new(anchor: "creation", seconds: 600.5)
+        expect(instance.seconds).to eq(600.5)
+      end
+    end
+
+    context "when working with boundary values" do
+      it "handles very large seconds values" do
+        instance = described_class.new(anchor: "creation", seconds: 99_999_999)
+        expect(instance.seconds).to eq(99_999_999)
+        serialized = instance.serialize
+        expect(serialized[:seconds]).to eq(99_999_999)
+      end
+
+      it "handles negative seconds values" do
+        instance = described_class.new(anchor: "creation", seconds: -100)
+        expect(instance.seconds).to eq(-100)
+        serialized = instance.serialize
+        expect(serialized[:seconds]).to eq(-100)
+      end
+
+      it "handles very long anchor strings" do
+        long_anchor = "a" * 1000
+        instance = described_class.new(anchor: long_anchor, seconds: 600)
+        expect(instance.anchor).to eq(long_anchor)
+        serialized = instance.serialize
+        expect(serialized[:anchor]).to eq(long_anchor)
+      end
+    end
+
+    context "when modifying after serialization" do
+      it "subsequent serializations reflect modifications" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        first_result = instance.serialize
+        expect(first_result[:seconds]).to eq(600)
+
+        instance.seconds = 1200
+        second_result = instance.serialize
+        expect(second_result[:seconds]).to eq(1200)
+      end
+
+      it "reflects anchor changes in serialization" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        first_result = instance.serialize
+        expect(first_result[:anchor]).to eq("creation")
+
+        instance.anchor = "last_activity"
+        second_result = instance.serialize
+        expect(second_result[:anchor]).to eq("last_activity")
+      end
+    end
+  end
+
+  describe "common use cases" do
+    context "default 10 minute expiration" do
+      it "creates instance with 600 seconds" do
+        instance = described_class.new(anchor: "creation", seconds: 600)
+        expect(instance.seconds).to eq(600)
+        expect(instance.anchor).to eq("creation")
+      end
+    end
+
+    context "session expiration from creation" do
+      it "uses creation anchor" do
+        instance = described_class.new(anchor: "creation", seconds: 3600)
+        expect(instance.anchor).to eq("creation")
+        expect(instance.seconds).to eq(3600)
+      end
+    end
+
+    context "session expiration from last activity" do
+      it "uses last_activity anchor" do
+        instance = described_class.new(anchor: "last_activity", seconds: 1800)
+        expect(instance.anchor).to eq("last_activity")
+        expect(instance.seconds).to eq(1800)
+      end
+    end
+
+    context "various time durations" do
+      it "represents 1 minute" do
+        instance = described_class.new(anchor: "creation", seconds: 60)
+        expect(instance.seconds).to eq(60)
+      end
+
+      it "represents 5 minutes" do
+        instance = described_class.new(anchor: "creation", seconds: 300)
+        expect(instance.seconds).to eq(300)
+      end
+
+      it "represents 30 minutes" do
+        instance = described_class.new(anchor: "creation", seconds: 1800)
+        expect(instance.seconds).to eq(1800)
+      end
+
+      it "represents 1 hour" do
+        instance = described_class.new(anchor: "creation", seconds: 3600)
+        expect(instance.seconds).to eq(3600)
+      end
+
+      it "represents 24 hours" do
+        instance = described_class.new(anchor: "creation", seconds: 86_400)
+        expect(instance.seconds).to eq(86_400)
       end
     end
   end

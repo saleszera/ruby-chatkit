@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ruby-chatkit (0.1.9)
+    ruby-chatkit (0.2.0)
       base64
       event_stream_parser
       http
@@ -217,8 +217,6 @@ GEM
     unicode-emoji (4.1.0)
     uri (1.1.1)
     useragent (0.16.11)
-    vcr (6.3.1)
-      base64
     webmock (3.24.0)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
@@ -247,7 +245,6 @@ DEPENDENCIES
   rubocop-rspec
   ruby-chatkit!
   shoulda-matchers (~> 7.0.1)
-  vcr (~> 6.3.1)
   webmock
 
 BUNDLED WITH

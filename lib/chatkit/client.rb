@@ -28,11 +28,11 @@ module ChatKit
     # @param timeout [Integer, nil] - optional - The timeout for requests.
     # @param logger [Logger, nil] - optional - The logger instance.
     def initialize(
-      api_key: ChatKit.configuration.api_key, 
+      api_key: ChatKit.configuration.api_key,
       host: ChatKit.configuration.host,
       timeout: ChatKit.configuration.timeout,
       logger: nil
-      )
+    )
       @api_key = api_key
       @host = host
       @timeout = timeout
@@ -68,6 +68,17 @@ module ChatKit
         expires_after:,
         rate_limits:
       )
+    end
+
+    # Cancels the current session or a specified session by ID.
+    # @param session_id [String] - The ID of the session to cancel.
+    #
+    # @raise [RuntimeError] If no session ID is provided and there is no current session.
+    # @return [Session::Cancel::Response] The response from the cancel operation.
+    def cancel_session!(session_id:)
+      raise "No session ID provided" if session_id.nil?
+
+      Session.cancel!(session_id:, client: self)
     end
 
     # Sends a message in a conversation, optionally uploading files.

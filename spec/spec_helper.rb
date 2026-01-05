@@ -5,14 +5,13 @@ Dotenv.load(".env.test") if File.exist?(".env.test")
 require "chatkit"
 require "shoulda-matchers"
 require "factory_bot"
-require "vcr"
 require "webmock/rspec"
-
-# Load VCR configuration
-Dir[File.expand_path("support/**/*.rb", __dir__)].each { |f| require f }
 
 # Configure WebMock
 WebMock.disable_net_connect!(allow_localhost: true)
+
+# Load support files (helpers, shared contexts)
+Dir[File.join(__dir__, "support/**/*.rb")].sort.each { |f| require f }
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

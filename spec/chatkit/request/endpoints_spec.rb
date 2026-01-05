@@ -7,9 +7,9 @@ RSpec.describe ChatKit::Request::Endpoints do
     end
   end
 
-  describe ".sessions_endpoint" do
+  describe ".create_session_endpoint" do
     it "returns the correct sessions endpoint" do
-      expect(described_class.sessions_endpoint).to eq("/v1/chatkit/sessions")
+      expect(described_class.create_session_endpoint).to eq("/v1/chatkit/sessions")
     end
   end
 

@@ -1,0 +1,8 @@
+{
+	"error": {
+		"message": "You must provide the 'OpenAI-Beta' header to access the Chatkit API. Please try again by setting the header 'OpenAI-Beta: chatkit_beta=v1'.",
+		"type": "invalid_request_error",
+		"param": null,
+		"code": "invalid_beta"
+	}
+}

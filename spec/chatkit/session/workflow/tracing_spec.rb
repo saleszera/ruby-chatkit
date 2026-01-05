@@ -10,14 +10,14 @@ RSpec.describe ChatKit::Session::Workflow::Tracing do
     end
 
     context "when enabled is provided" do
-      it "initializes with the provided enabled value" do
-        instance = described_class.new(enabled: false)
-        expect(instance.enabled).to be(false)
-      end
-
-      it "accepts true value" do
+      it "initializes with true value" do
         instance = described_class.new(enabled: true)
         expect(instance.enabled).to be(true)
+      end
+
+      it "initializes with false value" do
+        instance = described_class.new(enabled: false)
+        expect(instance.enabled).to be(false)
       end
 
       it "accepts nil value" do
@@ -29,244 +29,294 @@ RSpec.describe ChatKit::Session::Workflow::Tracing do
 
   describe ".build" do
     context "when no arguments are provided" do
-      it "creates an instance with nil enabled value" do
+      it "creates instance with nil enabled value" do
         instance = described_class.build
         expect(instance.enabled).to be_nil
       end
     end
 
     context "when enabled is provided" do
-      it "creates an instance with the provided enabled value" do
-        instance = described_class.build(enabled: false)
-        expect(instance.enabled).to be(false)
-      end
-
-      it "accepts true value" do
+      it "creates instance with true value" do
         instance = described_class.build(enabled: true)
         expect(instance.enabled).to be(true)
       end
 
-      it "accepts nil value" do
+      it "creates instance with false value" do
+        instance = described_class.build(enabled: false)
+        expect(instance.enabled).to be(false)
+      end
+
+      it "creates instance with nil value" do
         instance = described_class.build(enabled: nil)
         expect(instance.enabled).to be_nil
       end
     end
+
+    it "returns an instance of Tracing" do
+      instance = described_class.build
+      expect(instance).to be_a(described_class)
+    end
   end
 
   describe ".deserialize" do
+    context "when data is nil" do
+      it "initializes with nil enabled value" do
+        instance = described_class.deserialize(nil)
+        expect(instance.enabled).to be_nil
+      end
+
+      it "returns an instance of Tracing" do
+        instance = described_class.deserialize(nil)
+        expect(instance).to be_a(described_class)
+      end
+    end
+
+    context "when data is an empty hash" do
+      it "initializes with nil enabled value" do
+        instance = described_class.deserialize({})
+        expect(instance.enabled).to be_nil
+      end
+    end
+
     context "when data contains enabled key" do
-      it "creates an instance with enabled true" do
+      it "deserializes with true value" do
         data = { "enabled" => true }
         instance = described_class.deserialize(data)
-
         expect(instance.enabled).to be(true)
       end
 
-      it "creates an instance with enabled false" do
+      it "deserializes with false value" do
         data = { "enabled" => false }
         instance = described_class.deserialize(data)
-
         expect(instance.enabled).to be(false)
       end
 
-      it "creates an instance with enabled nil" do
+      it "deserializes with nil value" do
         data = { "enabled" => nil }
         instance = described_class.deserialize(data)
-
         expect(instance.enabled).to be_nil
       end
     end
 
-    context "when data does not contain enabled key" do
-      it "creates an instance with nil enabled value" do
-        data = {}
+    context "when data contains nested keys" do
+      it "extracts enabled using dig" do
+        data = { "enabled" => true, "other_key" => "value" }
         instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-      end
-
-      it "ignores other keys in data" do
-        data = { "other_key" => "other_value", "another_key" => 123 }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-      end
-    end
-
-    context "when data contains enabled key with other keys" do
-      it "only uses the enabled key and ignores others" do
-        data = {
-          "enabled" => true,
-          "extra_field" => "ignored",
-          "another_field" => 456,
-        }
-        instance = described_class.deserialize(data)
-
         expect(instance.enabled).to be(true)
       end
     end
 
-    context "with edge cases" do
-      it "handles nil data" do
-        instance = described_class.deserialize(nil)
-
-        expect(instance.enabled).to be_nil
-      end
-
-      it "handles empty data hash" do
-        data = {}
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be_nil
-      end
-
-      it "handles data with string keys" do
-        data = { "enabled" => false }
-        instance = described_class.deserialize(data)
-
-        expect(instance.enabled).to be(false)
-      end
-
-      it "returns a new instance each time" do
-        data = { "enabled" => true }
-        instance1 = described_class.deserialize(data)
-        instance2 = described_class.deserialize(data)
-
-        expect(instance1).not_to be(instance2)
-        expect(instance1.enabled).to eq(instance2.enabled)
-      end
-    end
-
-    context "round-trip serialization" do
-      it "can deserialize what was serialized" do
-        original = described_class.new(enabled: true)
-        serialized = original.serialize
-        # Convert keys to strings to simulate JSON parsing
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(original.enabled)
-      end
-
-      it "handles nil values in round-trip" do
-        original = described_class.new(enabled: nil)
-        serialized = original.serialize
-        # Since serialize uses compact, nil values are removed
-        # so deserializing an empty hash should give nil
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to be_nil
-      end
-
-      it "handles false values in round-trip" do
-        original = described_class.new(enabled: false)
-        serialized = original.serialize
-        string_keyed_data = serialized.transform_keys(&:to_s)
-        deserialized = described_class.deserialize(string_keyed_data)
-
-        expect(deserialized.enabled).to eq(original.enabled)
-      end
-    end
-  end
-
-  describe "#enabled" do
-    it "is readable" do
-      instance = described_class.new(enabled: false)
-      expect(instance.enabled).to be(false)
-    end
-
-    it "is writable" do
-      instance = described_class.new(enabled: true)
-      instance.enabled = false
-      expect(instance.enabled).to be(false)
-    end
-
-    it "accepts boolean values" do
-      instance = described_class.new
-
-      instance.enabled = true
-      expect(instance.enabled).to be(true)
-
-      instance.enabled = false
-      expect(instance.enabled).to be(false)
-    end
-
-    it "accepts nil value" do
-      instance = described_class.new(enabled: true)
-      instance.enabled = nil
-      expect(instance.enabled).to be_nil
+    it "returns an instance of Tracing" do
+      instance = described_class.deserialize({ "enabled" => true })
+      expect(instance).to be_a(described_class)
     end
   end
 
   describe "#serialize" do
     context "when enabled is true" do
-      it "returns a hash with enabled key" do
+      it "serializes to hash with enabled key" do
         instance = described_class.new(enabled: true)
         result = instance.serialize
-
         expect(result).to eq({ enabled: true })
       end
     end
 
     context "when enabled is false" do
-      it "returns a hash with enabled key" do
+      it "serializes to hash with enabled key" do
         instance = described_class.new(enabled: false)
         result = instance.serialize
-
         expect(result).to eq({ enabled: false })
       end
     end
 
     context "when enabled is nil" do
-      it "returns an empty hash due to compact" do
+      it "serializes to empty hash (compacts nil values)" do
         instance = described_class.new(enabled: nil)
         result = instance.serialize
-
         expect(result).to eq({})
       end
     end
 
-    context "when using default value" do
-      it "returns a hash with the default enabled value" do
+    context "when enabled is default value" do
+      it "serializes to hash with default enabled value" do
         instance = described_class.new
         result = instance.serialize
-
         expect(result).to eq({ enabled: ChatKit::Session::Defaults::ENABLED })
       end
     end
 
-    context "when enabled value is changed after initialization" do
-      it "returns the updated value" do
-        instance = described_class.new(enabled: true)
-        instance.enabled = false
-        result = instance.serialize
+    it "returns a hash" do
+      instance = described_class.new(enabled: true)
+      result = instance.serialize
+      expect(result).to be_a(Hash)
+    end
+  end
 
-        expect(result).to eq({ enabled: false })
+  describe "attribute accessors" do
+    let(:instance) { described_class.new }
+
+    describe "#enabled" do
+      it "allows reading the enabled value" do
+        expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
       end
 
-      it "returns empty hash when changed to nil" do
-        instance = described_class.new(enabled: true)
-        instance.enabled = nil
-        result = instance.serialize
+      it "allows writing true value" do
+        instance.enabled = true
+        expect(instance.enabled).to be(true)
+      end
 
-        expect(result).to eq({})
+      it "allows writing false value" do
+        instance.enabled = false
+        expect(instance.enabled).to be(false)
+      end
+
+      it "allows writing nil value" do
+        instance.enabled = nil
+        expect(instance.enabled).to be_nil
+      end
+    end
+  end
+
+  describe "integration with FactoryBot" do
+    context "using default factory" do
+      it "creates valid instance" do
+        instance = build(:tracing)
+        expect(instance).to be_a(described_class)
+        expect(instance.enabled).to be(true)
       end
     end
 
-    context "when built with build method" do
-      it "returns empty hash for default build" do
-        instance = described_class.build
-        result = instance.serialize
+    context "using :enabled trait" do
+      it "creates instance with enabled true" do
+        instance = build(:tracing, :enabled)
+        expect(instance.enabled).to be(true)
+      end
+    end
 
-        expect(result).to eq({})
+    context "using :disabled trait" do
+      it "creates instance with enabled false" do
+        instance = build(:tracing, :disabled)
+        expect(instance.enabled).to be(false)
+      end
+    end
+
+    context "using :nil_enabled trait" do
+      it "creates instance with nil enabled" do
+        instance = build(:tracing, :nil_enabled)
+        expect(instance.enabled).to be_nil
+      end
+    end
+
+    context "using :default_enabled trait" do
+      it "creates instance with default enabled value" do
+        instance = build(:tracing, :default_enabled)
+        expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
+      end
+    end
+
+    context "overriding enabled value" do
+      it "allows custom enabled value" do
+        instance = build(:tracing, enabled: false)
+        expect(instance.enabled).to be(false)
+      end
+    end
+  end
+
+  describe "round-trip serialization" do
+    it "maintains data integrity when serializing and deserializing with true" do
+      original = described_class.new(enabled: true)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+    end
+
+    it "maintains data integrity when serializing and deserializing with false" do
+      original = described_class.new(enabled: false)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+    end
+
+    it "handles nil values in round-trip" do
+      original = described_class.new(enabled: nil)
+      serialized = original.serialize
+      deserialized = described_class.deserialize(serialized.transform_keys(&:to_s))
+      expect(deserialized.enabled).to eq(original.enabled)
+    end
+  end
+
+  describe "edge cases" do
+    context "when modifying enabled after initialization" do
+      it "allows toggling enabled state" do
+        instance = described_class.new(enabled: true)
+        expect(instance.enabled).to be(true)
+
+        instance.enabled = false
+        expect(instance.enabled).to be(false)
+
+        instance.enabled = true
+        expect(instance.enabled).to be(true)
+      end
+    end
+
+    context "when serializing multiple times" do
+      it "produces consistent results" do
+        instance = described_class.new(enabled: true)
+        first_serialization = instance.serialize
+        second_serialization = instance.serialize
+        expect(first_serialization).to eq(second_serialization)
+      end
+    end
+
+    context "when deserializing with unexpected data types" do
+      it "handles string values in hash" do
+        data = { "enabled" => "true" }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to eq("true")
       end
 
-      it "returns hash with enabled value when provided to build" do
-        instance = described_class.build(enabled: true)
-        result = instance.serialize
+      it "handles integer values in hash" do
+        data = { "enabled" => 1 }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to eq(1)
+      end
 
-        expect(result).to eq({ enabled: true })
+      it "handles zero as false-like value" do
+        data = { "enabled" => 0 }
+        instance = described_class.deserialize(data)
+        expect(instance.enabled).to eq(0)
+      end
+    end
+
+    context "when modifying after serialization" do
+      it "subsequent serializations reflect modifications" do
+        instance = described_class.new(enabled: true)
+        first_result = instance.serialize
+        expect(first_result[:enabled]).to be(true)
+
+        instance.enabled = false
+        second_result = instance.serialize
+        expect(second_result[:enabled]).to be(false)
+      end
+    end
+  end
+
+  describe "constants and defaults" do
+    it "uses Session::Create::Defaults::ENABLED as default value" do
+      instance = described_class.new
+      expect(instance.enabled).to eq(ChatKit::Session::Defaults::ENABLED)
+    end
+
+    it "Session::Create::Defaults::ENABLED is true" do
+      expect(ChatKit::Session::Defaults::ENABLED).to be(true)
+    end
+  end
+
+  describe "documentation compliance" do
+    context "according to the class documentation" do
+      it "tracing is enabled by default" do
+        instance = described_class.new
+        expect(instance.enabled).to be(true)
       end
     end
   end

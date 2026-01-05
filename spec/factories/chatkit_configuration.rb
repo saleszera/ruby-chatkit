@@ -4,12 +4,20 @@ FactoryBot.define do
   factory :automatic_thread_titling, class: "ChatKit::Session::ChatKitConfiguration::AutomaticThreadTitling" do
     enabled { true }
 
+    trait :enabled do
+      enabled { true }
+    end
+
     trait :disabled do
       enabled { false }
     end
 
     trait :nil_enabled do
       enabled { nil }
+    end
+
+    trait :default_enabled do
+      enabled { ChatKit::Session::Defaults::ENABLED }
     end
 
     initialize_with { new(enabled:) }
@@ -20,12 +28,20 @@ FactoryBot.define do
     max_file_size { 256 }
     max_files { 5 }
 
+    trait :enabled do
+      enabled { true }
+    end
+
     trait :disabled do
       enabled { false }
     end
 
     trait :nil_enabled do
       enabled { nil }
+    end
+
+    trait :default_enabled do
+      enabled { ChatKit::Session::Defaults::ENABLED }
     end
 
     trait :large_files do
@@ -43,6 +59,11 @@ FactoryBot.define do
       max_files { ChatKit::Session::ChatKitConfiguration::FileUpload::Defaults::MAX_FILES }
     end
 
+    trait :nil_limits do
+      max_file_size { nil }
+      max_files { nil }
+    end
+
     initialize_with { new(enabled:, max_file_size:, max_files:) }
   end
 
@@ -50,12 +71,20 @@ FactoryBot.define do
     enabled { true }
     recent_threads { 50 }
 
+    trait :enabled do
+      enabled { true }
+    end
+
     trait :disabled do
       enabled { false }
     end
 
     trait :nil_enabled do
       enabled { nil }
+    end
+
+    trait :default_enabled do
+      enabled { ChatKit::Session::Defaults::ENABLED }
     end
 
     trait :no_thread_limit do
@@ -68,6 +97,10 @@ FactoryBot.define do
 
     trait :unlimited_threads do
       recent_threads { 1000 }
+    end
+
+    trait :default_recent_threads do
+      recent_threads { nil }
     end
 
     initialize_with { new(enabled:, recent_threads:) }
@@ -102,6 +135,12 @@ FactoryBot.define do
       automatic_thread_titling_params { { enabled: nil } }
       file_upload_params { { enabled: nil, max_file_size: nil, max_files: nil } }
       history_params { { enabled: nil, recent_threads: nil } }
+    end
+
+    trait :with_objects do
+      automatic_thread_titling_params { build(:automatic_thread_titling) }
+      file_upload_params { build(:file_upload) }
+      history_params { build(:history) }
     end
 
     initialize_with do

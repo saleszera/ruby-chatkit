@@ -16,48 +16,17 @@ RSpec.describe ChatKit::Client do
   describe ".new" do
     context "when no parameters are provided" do
       it "uses configuration defaults" do
-        config = build(:config, api_key: "factory_api_key", host: "https://factory-host.com")
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
+        ChatKit.configuration = build(:config, api_key: "factory_config_api_key", host: ChatKit::Client::OpenAI::HOST)
         client = described_class.new
 
-        expect(client.api_key).to eq("factory_api_key")
-        expect(client.host).to eq("https://factory-host.com")
-      end
-
-      it "works with production configuration" do
-        config = build(:config, :production_config)
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
-        client = described_class.new
-
-        expect(client.api_key).to eq("sk-prod123456789")
+        expect(client.api_key).to eq("factory_config_api_key")
         expect(client.host).to eq(ChatKit::Client::OpenAI::HOST)
-      end
-
-      it "works with development configuration" do
-        config = build(:config, :development_config)
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
-        client = described_class.new
-
-        expect(client.api_key).to eq("dev_key_123")
-        expect(client.host).to eq("http://localhost:8000")
       end
     end
 
     context "when both parameters are provided" do
-      it "initializes with provided api_key and host" do
-        client = described_class.new(api_key: test_api_key, host: test_host)
-
-        expect(client.api_key).to eq(test_api_key)
-        expect(client.host).to eq(test_host)
-      end
-
       it "overrides configuration values" do
-        config = build(:config, api_key: "config_key", host: "https://config.com")
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
+        ChatKit.configuration = build(:config, api_key: "config_key", host: "https://config.com")
         client = described_class.new(api_key: test_api_key, host: test_host)
 
         expect(client.api_key).to eq(test_api_key)
@@ -67,19 +36,7 @@ RSpec.describe ChatKit::Client do
 
     context "when only api_key is provided" do
       it "uses provided api_key and default host from configuration" do
-        config = build(:config, host: "https://factory-config-host.com")
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
-        client = described_class.new(api_key: test_api_key)
-
-        expect(client.api_key).to eq(test_api_key)
-        expect(client.host).to eq("https://factory-config-host.com")
-      end
-
-      it "works with production host from config" do
-        config = build(:config, :with_production_host)
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
+        ChatKit.configuration = build(:config, host: ChatKit::Client::OpenAI::HOST)
         client = described_class.new(api_key: test_api_key)
 
         expect(client.api_key).to eq(test_api_key)
@@ -89,19 +46,15 @@ RSpec.describe ChatKit::Client do
 
     context "when only host is provided" do
       it "uses provided host and default api_key from configuration" do
-        config = build(:config, api_key: "factory_config_api_key")
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
+        ChatKit.configuration = build(:config, api_key: "default_config_api_key")
         client = described_class.new(host: test_host)
 
-        expect(client.api_key).to eq("factory_config_api_key")
+        expect(client.api_key).to eq("default_config_api_key")
         expect(client.host).to eq(test_host)
       end
 
       it "works with nil api_key from config" do
-        config = build(:config, :with_nil_api_key)
-        allow(ChatKit).to receive(:configuration).and_return(config)
-
+        ChatKit.configuration = build(:config, :with_nil_api_key)
         client = described_class.new(host: test_host)
 
         expect(client.api_key).to be_nil
@@ -165,6 +118,8 @@ RSpec.describe ChatKit::Client do
   end
 
   describe "attribute accessors" do
+    before { ChatKit.configuration = build(:config, api_key: test_api_key, host: test_host) }
+
     let(:client) { described_class.new(api_key: test_api_key, host: test_host) }
 
     describe "#api_key" do
@@ -224,6 +179,8 @@ RSpec.describe ChatKit::Client do
     let(:mock_http_connection) { instance_double(HTTP::Client) }
 
     before do
+      ChatKit.configuration = build(:config, api_key: test_api_key, host: test_host)
+
       allow(HTTP).to receive(:persistent).with(test_host).and_return(mock_http_base)
       allow(mock_http_base).to receive(:auth).with("Bearer #{test_api_key}").and_return(mock_http_connection)
     end
@@ -293,27 +250,16 @@ RSpec.describe ChatKit::Client do
   end
 
   describe "integration with configuration" do
-    let(:mock_config) { instance_double(ChatKit::Config, api_key: "config_key", host: "https://config.com") }
-
-    before do
-      allow(ChatKit).to receive(:configuration).and_return(mock_config)
-    end
-
     it "uses configuration values as defaults" do
+      ChatKit.configuration = build(:config, api_key: "config_key", host: "https://config.com")
       client = described_class.new
 
       expect(client.api_key).to eq("config_key")
       expect(client.host).to eq("https://config.com")
     end
 
-    it "overrides configuration with explicit parameters" do
-      client = described_class.new(api_key: "explicit_key", host: "https://explicit.com")
-
-      expect(client.api_key).to eq("explicit_key")
-      expect(client.host).to eq("https://explicit.com")
-    end
-
     it "partially overrides configuration" do
+      ChatKit.configuration = build(:config, api_key: "config_key", host: "https://config.com")
       client = described_class.new(api_key: "explicit_key")
 
       expect(client.api_key).to eq("explicit_key")
@@ -364,44 +310,6 @@ RSpec.describe ChatKit::Client do
         allow(HTTP).to receive(:persistent).and_raise(StandardError, "Connection failed")
 
         expect { client.connection }.to raise_error(StandardError, "Connection failed")
-      end
-    end
-  end
-
-  describe "real-world scenarios" do
-    context "with OpenAI production setup" do
-      it "can be configured for OpenAI API" do
-        client = described_class.new(
-          api_key: "sk-real_openai_key_here",
-          host: ChatKit::Client::OpenAI::HOST
-        )
-
-        expect(client.api_key).to eq("sk-real_openai_key_here")
-        expect(client.host).to eq("https://api.openai.com")
-      end
-    end
-
-    context "with development setup" do
-      it "can be configured for local development" do
-        client = described_class.new(
-          api_key: "dev_key",
-          host: "http://localhost:8000"
-        )
-
-        expect(client.api_key).to eq("dev_key")
-        expect(client.host).to eq("http://localhost:8000")
-      end
-    end
-
-    context "with environment-based configuration" do
-      it "respects environment variables through configuration" do
-        mock_config = instance_double(ChatKit::Config, api_key: "env_api_key", host: "https://env-host.com")
-        allow(ChatKit).to receive(:configuration).and_return(mock_config)
-
-        client = described_class.new
-
-        expect(client.api_key).to eq("env_api_key")
-        expect(client.host).to eq("https://env-host.com")
       end
     end
   end
