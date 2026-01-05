@@ -12,8 +12,6 @@ gem "dotenv-rails"
 gem "factory_bot", "~> 6.5.6"
 gem "rspec", "~> 3.13.2"
 gem "webmock"
-
-gem "logger"
 gem "pry-byebug"
 gem "rubocop"
 gem "rubocop-basic"

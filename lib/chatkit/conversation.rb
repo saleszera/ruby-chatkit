@@ -80,6 +80,8 @@ module ChatKit
     def perform_request!
       payload = build_payload
 
+      @logger&.info("Starting conversation with payload: #{payload}")
+
       result = @client.connection.headers(conversation_headers).post(
         conversation_endpoint,
         json: payload
@@ -101,9 +103,11 @@ module ChatKit
     # Builds the payload for the conversation request.
     # @return [Hash] The payload hash.
     def build_payload
+      raise ArgumentError, "Text must be a non-empty string" if @text.nil? || !@text.is_a?(String) || @text.strip.empty?
+
       payload = Defaults::PAYLOAD.dup
 
-      payload[:params][:input][:content] << { type: "input_text", text: @text }
+      payload[:params][:input][:content] = [{ type: "input_text", text: @text }]
       payload[:params][:input][:attachments] = @attachments if @attachments
 
       if current_thread&.id

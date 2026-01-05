@@ -4,9 +4,7 @@ require "logger"
 require "uri"
 require "http"
 require "event_stream_parser"
-require "net/http"
 require "zeitwerk"
-require "pry"
 
 loader = Zeitwerk::Loader.for_gem
 loader.ignore("#{__dir__}/ruby")
